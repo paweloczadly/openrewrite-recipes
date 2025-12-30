@@ -9,7 +9,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  check-commit-message:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
