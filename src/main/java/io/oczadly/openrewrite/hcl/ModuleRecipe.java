@@ -8,7 +8,7 @@ import org.openrewrite.hcl.HclVisitor;
 import org.openrewrite.hcl.tree.Hcl;
 
 /**
- * Base class for recipes that modify Terraform module blocks.
+ * Base class for recipes that modify OpenTofu module blocks.
  *
  * <p>Implementations must provide:
  * <ul>

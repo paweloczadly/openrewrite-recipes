@@ -11,7 +11,7 @@ import org.openrewrite.test.RewriteTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.hcl.Assertions.hcl;
 
-public class AddModelInputTest implements RewriteTest {
+public class AddModulelInputTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

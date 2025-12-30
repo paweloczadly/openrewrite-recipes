@@ -39,7 +39,7 @@ public class ChangeModuleVersion extends ModuleRecipe {
     @NullMarked
     @Override
     public String getDescription() {
-        return "Changes the version of a Terraform module.";
+        return "Changes the version of a OpenTofu module.";
     }
 
     @Override

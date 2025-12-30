@@ -5,7 +5,7 @@ import org.openrewrite.hcl.tree.BodyContent;
 import org.openrewrite.hcl.tree.Hcl;
 
 /**
- * Utility class providing predicates and helper methods for working with Terraform module blocks in HCL.
+ * Utility class providing predicates and helper methods for working with OpenTofu module blocks in HCL.
  */
 public class ModuleBlockPredicates {
 
