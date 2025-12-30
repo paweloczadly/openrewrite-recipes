@@ -1,6 +1,7 @@
 # openrewrite-recipes
 
 [![Latest Release](https://img.shields.io/github/v/release/paweloczadly/openrewrite-recipes?label=release)](https://github.com/paweloczadly/openrewrite-recipes/releases/latest)
+[![Maven Central Version](https://img.shields.io/maven-central/v/io.oczadly/openrewrite-recipes)](https://central.sonatype.com/artifact/io.oczadly/openrewrite-recipes/overview)
 
 A collection of [OpenRewrite](https://docs.openrewrite.org/) recipes for automated refactoring.
 
