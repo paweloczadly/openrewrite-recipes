@@ -39,17 +39,12 @@ public class ChangeModuleVersion extends ModuleRecipe {
     @NullMarked
     @Override
     public String getDescription() {
-        return "Changes the version of a OpenTofu module.";
+        return "Changes the version of an OpenTofu module.";
     }
 
     @Override
     protected HclVisitor<ExecutionContext> createModuleVisitor() {
         return new HclVisitor<ExecutionContext>() {
-            @Override
-            public @NonNull Hcl visitConfigFile(Hcl.@NonNull ConfigFile configFile, ExecutionContext ctx) {
-                return super.visitConfigFile(configFile, ctx);
-            }
-
             @Override
             public @NonNull Hcl visitBlock(Hcl.@NonNull Block block, ExecutionContext ctx) {
                 block = (Hcl.Block) super.visitBlock(block, ctx);
@@ -98,7 +93,7 @@ public class ChangeModuleVersion extends ModuleRecipe {
         // Remove quotes if present
         currentVersion = ModuleBlockPredicates.removeQuotes(currentVersion);
 
-        if (version == null || !version.equals(currentVersion)) {
+        if (!version.equals(currentVersion)) {
             return block;
         }
 

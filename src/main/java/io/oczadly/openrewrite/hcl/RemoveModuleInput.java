@@ -38,7 +38,7 @@ public class RemoveModuleInput extends ModuleRecipe {
     @NullMarked
     @Override
     public String getDescription() {
-        return "Removes a specified input variable from a OpenTofu module block.";
+        return "Removes a specified input variable from an OpenTofu module block.";
     }
 
     @Override

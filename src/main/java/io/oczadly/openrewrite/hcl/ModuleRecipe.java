@@ -45,7 +45,7 @@ public abstract class ModuleRecipe extends Recipe {
     final String moduleName;
 
     @NonNull
-    @Option(displayName = "Source", description = "The source address of the module block to modify. Can reference local modules or remote registry modules", required = false)
+    @Option(displayName = "Source", description = "The source address of the module block to modify. Can reference local modules or remote registry modules", required = true)
     final String source;
 
     @Nullable
