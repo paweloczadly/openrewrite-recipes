@@ -10,14 +10,15 @@ Adds a new input argument to OpenTofu module blocks.
 
 ## Options
 
-| Type     | Name        | Description                                                                                               | Example                                          |
-|----------|-------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| `String` | source      | The source address of the module block to modify. Can reference local modules or remote registry modules. | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
-| `String` | inputName   | The name of the input variable to be added.                                                               | `"location"`                                     |
-| `String` | inputValue  | The value of the input variable to be added.                                                              | `"eastus2"`                                      |
-| `String` | moduleName  | *Optional*. The name of the module block to modify.                                                       | `"vnet_eastus2_apps"`                            |
-| `String` | version     | *Optional*. The version of the module block to modify.                                                    | `"~> 1.0.0"`                                     |
-| `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
+| Type     | Name               | Description                                                                                                                                                   | Example                                          |
+|----------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| `String` | source             | The source address of the module block to modify. Can reference local modules or remote registry modules.                                                     | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
+| `String` | inputName          | The name of the input variable to be added.                                                                                                                   | `"location"`                                     |
+| `String` | inputValue         | The value of the input variable to be added. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.                               | `"eastus2"`                                      |
+| `String` | inputValueProperty | System property name containing the value to assign to the input variable. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty. | `"avm.vnet.location"`                            |
+| `String` | moduleName         | *Optional*. The name of the module block to modify.                                                                                                           | `"vnet_eastus2_apps"`                            |
+| `String` | version            | *Optional*. The version of the module block to modify.                                                                                                        | `"~> 1.0.0"`                                     |
+| `String` | filePattern        | *Optional*. A glob pattern to match files to apply this recipe to.                                                                                            | `"**/production/**/*.tf""`                       |
 
 ## Used by
 

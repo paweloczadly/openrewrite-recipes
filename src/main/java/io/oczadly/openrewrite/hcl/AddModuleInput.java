@@ -26,18 +26,25 @@ public class AddModuleInput extends ModuleRecipe {
     @Option(displayName = "Input name", description = "The name of the input variable to add to the module")
     String inputName;
 
-    @Option(displayName = "Input value", description = "The value to assign to the input variable")
+    @Option(displayName = "Input value", description = "The value to assign to the input variable", required = false)
+    @Nullable
     String inputValue;
+
+    @Option(displayName = "Input value property", description = "System property name containing the value to assign to the input variable", required = false)
+    @Nullable
+    String inputValueProperty;
 
     public AddModuleInput(@Nullable String moduleName,
                           @Nullable String source,
                           @Nullable String version,
                           String inputName,
-                          String inputValue,
+                          @Nullable String inputValue,
+                          @Nullable String inputValueProperty,
                           @Nullable String filePattern) {
         super(moduleName, source, version, filePattern);
         this.inputName = inputName;
         this.inputValue = inputValue;
+        this.inputValueProperty = inputValueProperty;
     }
 
     @NullMarked
@@ -72,7 +79,8 @@ public class AddModuleInput extends ModuleRecipe {
                 List<BodyContent> newBody = new ArrayList<>(block.getBody());
 
                 String indent = ModuleBlockPredicates.detectIndentation(block);
-                String quotedValue = "\"" + inputValue + "\"";
+                String effectiveValue = resolveInputValue();
+                String quotedValue = "\"" + effectiveValue + "\"";
 
                 Hcl.Attribute newAttribute = new Hcl.Attribute(
                     Tree.randomId(),
@@ -86,6 +94,18 @@ public class AddModuleInput extends ModuleRecipe {
                 newBody.add(newAttribute);
 
                 return block.withBody(newBody);
+            }
+
+            private String resolveInputValue() {
+                if (inputValueProperty != null) {
+                    String propertyValue = System.getProperty(inputValueProperty);
+                    if (propertyValue == null) {
+                        throw new IllegalStateException("System property '" + inputValueProperty + "' is not set");
+                    }
+
+                    return propertyValue;
+                }
+                return inputValue;
             }
         };
     }
@@ -102,11 +122,22 @@ public class AddModuleInput extends ModuleRecipe {
             ));
         }
 
-        if (inputValue.trim().isEmpty()) {
+        boolean hasInputValue = inputValue != null && !inputValue.trim().isEmpty();
+        boolean hasInputValueProperty = inputValueProperty != null && !inputValueProperty.trim().isEmpty();
+
+        if (!hasInputValue && !hasInputValueProperty) {
             validated = validated.and(Validated.invalid(
-                "inputValue",
+                "inputValue/inputValueProperty",
                 inputValue,
-                "'inputValue' must be specified and cannot be empty."
+                "Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty."
+            ));
+        }
+
+        if (hasInputValue && hasInputValueProperty) {
+            validated = validated.and(Validated.invalid(
+                "inputValue/inputValueProperty",
+                inputValue,
+                "Only one of 'inputValue' or 'inputValueProperty' should be specified."
             ));
         }
 
