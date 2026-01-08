@@ -9,6 +9,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.openrewrite.hcl.Assertions.hcl;
 
 public class AddModuleInputTest implements RewriteTest {
@@ -21,6 +22,7 @@ public class AddModuleInputTest implements RewriteTest {
             "0.10.0",
             "parent_id",
             "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+            null,
             null
         ));
     }
@@ -74,6 +76,7 @@ public class AddModuleInputTest implements RewriteTest {
                 null,
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 "**/*.tf"
             )),
 
@@ -206,6 +209,7 @@ public class AddModuleInputTest implements RewriteTest {
                 null,
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 "**/rg-prod-eastus/**/*.tf"
             )),
 
@@ -247,6 +251,7 @@ public class AddModuleInputTest implements RewriteTest {
                 null,
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 "**/main.tf"
             )),
 
@@ -350,6 +355,7 @@ public class AddModuleInputTest implements RewriteTest {
                 "0.10.0",
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 null
             )),
 
@@ -424,6 +430,7 @@ public class AddModuleInputTest implements RewriteTest {
                 null,
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 null
             )),
 
@@ -470,6 +477,7 @@ public class AddModuleInputTest implements RewriteTest {
                 "0.10.0",
                 "parent_id",
                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001",
+                null,
                 null
             )),
 
@@ -509,20 +517,97 @@ public class AddModuleInputTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest(name = "should reject invalid inputName=''{0}'' inputValue=''{1}''")
+    @Test
+    void shouldAddInputWithValueFromSystemProperty() {
+        String propertyName = "avm.vnet.parent_id";
+        String propertyValue = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}";
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                    spec -> spec.recipe(new AddModuleInput(
+                            null,
+                            "Azure/avm-res-network-virtualnetwork/azurerm",
+                            "~> 0.10.0",
+                            "parent_id",
+                            null,
+                            propertyName,
+                            null
+                    )),
+
+                    hcl(
+                            """
+                            module "avm-res-network-virtualnetwork" {
+                              source              = "Azure/avm-res-network-virtualnetwork/azurerm"
+                              version             = "~> 0.10.0"
+                              address_space       = ["10.0.0.0/16"]
+                              location            = "eastus2"
+                              resource_group_name = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.name}"
+                            }
+                            """,
+                            """
+                            module "avm-res-network-virtualnetwork" {
+                              source              = "Azure/avm-res-network-virtualnetwork/azurerm"
+                              version             = "~> 0.10.0"
+                              address_space       = ["10.0.0.0/16"]
+                              location            = "eastus2"
+                              resource_group_name = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.name}"
+                              parent_id           = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}"
+                            }
+                            """
+                    )
+            );
+        } finally {
+            System.clearProperty(propertyName);
+        }
+    }
+
+    @Test
+    void shouldThrowExceptionWhenSystemPropertyNotSet() {
+        String propertyName = "avm.vnet.nonexistent";
+
+        AddModuleInput recipe = new AddModuleInput(
+                "avm-res-network-virtualnetwork",
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "0.10.0",
+                "parent_id",
+                null,
+                propertyName,
+                null
+        );
+
+        assertThatThrownBy(() -> rewriteRun(
+                spec -> spec.recipe(recipe),
+                hcl(
+                        """
+                        module "avm-res-network-virtualnetwork" {
+                          source = "Azure/avm-res-network-virtualnetwork/azurerm"
+                          version = "0.10.0"
+                        }
+                        """
+                )
+        ))
+                .hasRootCauseInstanceOf(IllegalStateException.class)
+                .hasRootCauseMessage("System property '" + propertyName + "' is not set");
+    }
+
+    @ParameterizedTest(name = "should reject invalid inputName=''{0}'' inputValue=''{1}'', inputValueProperty=''{2}''")
     @CsvSource(delimiter = '|', textBlock = """
-        ''   | value | 'inputName' must be specified and cannot be empty.
-        ' '  | value | 'inputName' must be specified and cannot be empty.
-        name | ''    | 'inputValue' must be specified and cannot be empty.
-        name | ' '   | 'inputValue' must be specified and cannot be empty.
+        ''   | value | ''            | 'inputName' must be specified and cannot be empty.
+        ' '  | value | ''            | 'inputName' must be specified and cannot be empty.
+        name | ''    | ' '           | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
+        name | ' '   | ''            | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
+        name | value | valueProperty | Only one of 'inputValue' or 'inputValueProperty' should be specified.
         """)
-    void shouldRejectInvalidInputNameAndInputValue(String inputName, String inputValue, String expectedMessage) {
+    void shouldRejectInvalidInputNameAndInputValue(String inputName, String inputValue, String inputValueProperty, String expectedMessage) {
         AddModuleInput recipe = new AddModuleInput(
             null,
             "Azure/avm-res-network-virtualnetwork/azurerm",
             null,
             inputName,
             inputValue,
+            inputValueProperty,
             null
         );
 
