@@ -80,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    rewrite("io.oczadly:openrewrite-recipes:1.0.0")
+    rewrite("io.oczadly:openrewrite-recipes:1.1.0")
 }
 
 rewrite {
