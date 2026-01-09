@@ -1,12 +1,25 @@
 {
   "plugins": [
     "@semantic-release/commit-analyzer",
+    [
+      "semantic-release-replace-plugin",
+      {
+        "replacements": [
+          {
+            "files": ["docs/recipes/*.md"],
+            "from": "rewrite\\(\"io\\.oczadly:openrewrite-recipes:[^\"]*\"\\)",
+            "to": "rewrite(\"io.oczadly:openrewrite-recipes:${nextRelease.version}\")",
+            "regex": true
+          }
+        ]
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     [
       "@semantic-release/git",
       {
-        "assets": ["CHANGELOG.md"]
+        "assets": ["CHANGELOG.md", "docs/recipes/*.md"]
       }
     ],
     [
