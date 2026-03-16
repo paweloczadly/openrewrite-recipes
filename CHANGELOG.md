@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.1.1...v1.1.2) (2026-03-16)
+
+
+### Bug Fixes
+
+* **deps:** update gradle-dependencies ([#12](https://github.com/paweloczadly/openrewrite-recipes/issues/12)) ([bbefb0a](https://github.com/paweloczadly/openrewrite-recipes/commit/bbefb0a21420af9fff00fcabb264b8ad55c4c994))
+
 ## [1.1.1](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.1.0...v1.1.1) (2026-03-16)
 
 
