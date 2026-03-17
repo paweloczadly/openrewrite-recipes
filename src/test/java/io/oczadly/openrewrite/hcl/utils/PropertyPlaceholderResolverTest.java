@@ -149,6 +149,50 @@ class PropertyPlaceholderResolverTest {
     }
 
     @Test
+    void shouldTreatDoubleCurlyPlaceholderAsLiteralTerraformInterpolation() {
+        Properties properties = new Properties();
+
+        String result = PropertyPlaceholderResolver.resolve(
+            "module.vnet.module.subnet[\"${{local.subnet_name}}\"].azapi_resource.subnet",
+            properties
+        );
+
+        assertThat(result).isEqualTo("module.vnet.module.subnet[\"${local.subnet_name}\"].azapi_resource.subnet");
+    }
+
+    @Test
+    void shouldResolveSystemPlaceholderAndKeepDoubleCurlyLiteralPlaceholder() {
+        Properties properties = new Properties();
+        properties.setProperty("env", "prod");
+
+        String result = PropertyPlaceholderResolver.resolve(
+            "${env}-module.vnet[\"${{local.subnet_name}}\"]",
+            properties
+        );
+
+        assertThat(result).isEqualTo("prod-module.vnet[\"${local.subnet_name}\"]");
+    }
+
+    @Test
+    void shouldNotCorruptResolvedValuesContainingLegacySentinelText() {
+        Properties properties = new Properties();
+        properties.setProperty("legacy", "__ORHCL_LITERAL_OPEN__value__ORHCL_LITERAL_CLOSE__");
+
+        String result = PropertyPlaceholderResolver.resolve("${legacy}-suffix", properties);
+
+        assertThat(result).isEqualTo("__ORHCL_LITERAL_OPEN__value__ORHCL_LITERAL_CLOSE__-suffix");
+    }
+
+    @Test
+    void shouldThrowWhenDoubleCurlyPlaceholderIsUnclosed() {
+        Properties properties = new Properties();
+
+        assertThatThrownBy(() -> PropertyPlaceholderResolver.resolve("module.${{local.subnet_name", properties))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Failed to resolve property placeholders in: 'module.${{local.subnet_name'");
+    }
+
+    @Test
     void shouldUseSystemPropertiesWhenPropertiesArgumentIsNull() {
         String key = "avm.placeholder.system";
         String value = "resolved-system-value";
