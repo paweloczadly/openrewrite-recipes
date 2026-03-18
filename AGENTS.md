@@ -23,6 +23,9 @@
   - `./gradlew test --tests '*AddModuleInputTest'`
 
 ## Code conventions to follow in this repo
+- Aim for Staff Engineer-level quality: clear design, safe changes, and maintainable implementation quality.
+- Keep solutions clean and pragmatic; avoid over-engineering and unnecessary abstractions.
+- When using OpenRewrite APIs, verify behavior against OpenRewrite source/docs for the exact versions pinned in `gradle/libs.versions.toml` (especially `openrewrite` and `openrewrite-bom`).
 - Constructor argument order is consistent: shared module filters first (`moduleName`, `source`, `version`), then recipe-specific options, then `filePattern`.
 - Public recipe options are declared with `@Option`; validation happens in `validate()` and is heavily assertion-tested for exact failure messages.
 - Keep `source` mandatory in new `ModuleRecipe` subclasses; tests expect invalid state when `source` is null/blank (`ModuleRecipeTest`).
