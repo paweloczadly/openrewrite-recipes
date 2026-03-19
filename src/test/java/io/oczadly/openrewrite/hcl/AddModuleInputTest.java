@@ -10,6 +10,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static io.oczadly.openrewrite.hcl.utils.SystemPropertyTestSupport.restoreSystemProperty;
 import static org.openrewrite.hcl.Assertions.hcl;
 
 public class AddModuleInputTest implements RewriteTest {
@@ -803,11 +804,4 @@ public class AddModuleInputTest implements RewriteTest {
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
     }
 
-    private static void restoreSystemProperty(String propertyName, String previousPropertyValue) {
-        if (previousPropertyValue == null) {
-            System.clearProperty(propertyName);
-        } else {
-            System.setProperty(propertyName, previousPropertyValue);
-        }
-    }
 }

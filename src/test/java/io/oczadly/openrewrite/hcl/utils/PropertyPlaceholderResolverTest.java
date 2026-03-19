@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static io.oczadly.openrewrite.hcl.utils.SystemPropertyTestSupport.restoreSystemProperty;
 
 class PropertyPlaceholderResolverTest {
 
@@ -134,12 +135,5 @@ class PropertyPlaceholderResolverTest {
         }
     }
 
-    private static void restoreSystemProperty(String key, String previousValue) {
-        if (previousValue == null) {
-            System.clearProperty(key);
-        } else {
-            System.setProperty(key, previousValue);
-        }
-    }
 }
 
