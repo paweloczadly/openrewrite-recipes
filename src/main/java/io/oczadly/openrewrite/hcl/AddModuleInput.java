@@ -100,19 +100,16 @@ public class AddModuleInput extends ModuleRecipe {
 
             private String resolveInputValue() {
                 if (inputValueProperty != null) {
-                    String resolvedReferenceOrValue = PropertyPlaceholderResolver.resolve(inputValueProperty);
-
                     // Backward compatible behavior: plain property names still resolve via System.getProperty(name).
-                    if (resolvedReferenceOrValue != null && resolvedReferenceOrValue.equals(inputValueProperty)) {
-                        String propertyValue = System.getProperty(resolvedReferenceOrValue);
+                    if (!inputValueProperty.contains("${")) {
+                        String propertyValue = System.getProperty(inputValueProperty);
                         if (propertyValue == null) {
-                            throw new IllegalStateException("System property '" + resolvedReferenceOrValue + "' is not set");
+                            throw new IllegalStateException("System property '" + inputValueProperty + "' is not set");
                         }
                         return propertyValue;
                     }
 
-
-                    return resolvedReferenceOrValue;
+                    return PropertyPlaceholderResolver.resolve(inputValueProperty);
                 }
                 return inputValue;
             }

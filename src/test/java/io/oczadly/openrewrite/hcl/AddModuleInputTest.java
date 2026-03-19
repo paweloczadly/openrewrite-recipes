@@ -605,6 +605,47 @@ public class AddModuleInputTest implements RewriteTest {
         }
     }
 
+    @Test
+    void shouldTreatPlaceholderSyntaxAsInterpolationEvenWhenResolvedValueMatchesOriginalPlaceholder() {
+        String propertyName = "foo";
+        String propertyValue = "${foo}";
+        String inputValueProperty = "${foo}";
+        String previousPropertyValue = System.getProperty(propertyName);
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "${foo}"
+                    }
+                    """
+                )
+            );
+        } finally {
+            restoreSystemProperty(propertyName, previousPropertyValue);
+        }
+    }
+
 
     @Test
     void shouldAddInputWithInterpolatedPlaceholderAndLiteralSuffix() {
