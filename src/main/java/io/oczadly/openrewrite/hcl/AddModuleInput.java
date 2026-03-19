@@ -111,9 +111,6 @@ public class AddModuleInput extends ModuleRecipe {
                         return propertyValue;
                     }
 
-                    if (resolvedReferenceOrValue == null) {
-                        throw new IllegalStateException("System property '" + inputValueProperty + "' is not set");
-                    }
 
                     return resolvedReferenceOrValue;
                 }

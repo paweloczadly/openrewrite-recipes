@@ -521,6 +521,7 @@ public class AddModuleInputTest implements RewriteTest {
     void shouldAddInputWithValueFromSystemProperty() {
         String propertyName = "avm.vnet.parent_id";
         String propertyValue = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}";
+        String previousPropertyValue = System.getProperty(propertyName);
 
         System.setProperty(propertyName, propertyValue);
 
@@ -559,7 +560,7 @@ public class AddModuleInputTest implements RewriteTest {
                     )
             );
         } finally {
-            System.clearProperty(propertyName);
+            restoreSystemProperty(propertyName, previousPropertyValue);
         }
     }
 
@@ -568,6 +569,7 @@ public class AddModuleInputTest implements RewriteTest {
         String propertyName = "custom.parent.id";
         String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000";
         String inputValueProperty = "${custom.parent.id}";
+        String previousPropertyValue = System.getProperty(propertyName);
 
         System.setProperty(propertyName, propertyValue);
 
@@ -599,7 +601,7 @@ public class AddModuleInputTest implements RewriteTest {
                 )
             );
         } finally {
-            System.clearProperty(propertyName);
+            restoreSystemProperty(propertyName, previousPropertyValue);
         }
     }
 
@@ -609,6 +611,7 @@ public class AddModuleInputTest implements RewriteTest {
         String propertyName = "custom.parent.id";
         String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups";
         String inputValueProperty = "${custom.parent.id}/rg-demo-eastus2-001";
+        String previousPropertyValue = System.getProperty(propertyName);
 
         System.setProperty(propertyName, propertyValue);
 
@@ -640,7 +643,7 @@ public class AddModuleInputTest implements RewriteTest {
                 )
             );
         } finally {
-            System.clearProperty(propertyName);
+            restoreSystemProperty(propertyName, previousPropertyValue);
         }
     }
 
@@ -757,5 +760,13 @@ public class AddModuleInputTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    private static void restoreSystemProperty(String propertyName, String previousPropertyValue) {
+        if (previousPropertyValue == null) {
+            System.clearProperty(propertyName);
+        } else {
+            System.setProperty(propertyName, previousPropertyValue);
+        }
     }
 }

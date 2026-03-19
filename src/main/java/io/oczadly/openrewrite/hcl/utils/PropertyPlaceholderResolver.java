@@ -1,26 +1,18 @@
 package io.oczadly.openrewrite.hcl.utils;
 
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.internal.PropertyPlaceholderHelper;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * Utility for resolving placeholders in recipe configuration fields.
  * Supports ${property} and ${property:default} syntax.
  */
 public final class PropertyPlaceholderResolver {
-
-    private static final PropertyPlaceholderHelper HELPER =
-        new PropertyPlaceholderHelper("${", "}", ":");
-
-    private static final Pattern UNRESOLVED_PLACEHOLDER_PATTERN =
-        Pattern.compile("\\$\\{([^}]+)}");
 
     private PropertyPlaceholderResolver() {
     }
@@ -35,57 +27,121 @@ public final class PropertyPlaceholderResolver {
         }
 
         Properties effectiveProperties = properties != null ? properties : System.getProperties();
-
-        List<String> inputKeys = extractPlaceholderKeys(value);
-        if (inputKeys.isEmpty()) {
-            return value;
+        ResolutionResult result = resolvePlaceholders(value, effectiveProperties);
+        if (!result.unresolvedKeys.isEmpty()) {
+            throw new IllegalStateException(
+                "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", result.unresolvedKeys) + ")"
+            );
         }
+        return result.resolved;
+    }
 
-        try {
-            String resolved = HELPER.replacePlaceholders(value, effectiveProperties);
-            // Only check whether the placeholders present in the original input were resolved.
-            // The resolved value may legitimately contain ${...} syntax (e.g. Terraform expressions)
-            // that must be treated as literal text, not as further placeholders to resolve.
-            List<String> unresolvedKeys = inputKeys.stream()
-                .filter(key -> HELPER.hasPlaceholders(resolved) && isKeyStillUnresolved(resolved, key, effectiveProperties))
-                .collect(Collectors.toList());
-            if (!unresolvedKeys.isEmpty()) {
-                throw new IllegalStateException(
-                    "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", unresolvedKeys) + ")"
-                );
+    private static ResolutionResult resolvePlaceholders(String input, Properties properties) {
+        StringBuilder resolved = new StringBuilder(input.length());
+        Set<String> unresolvedKeys = new LinkedHashSet<>();
+
+        int cursor = 0;
+        while (cursor < input.length()) {
+            int placeholderStart = input.indexOf("${", cursor);
+            if (placeholderStart < 0) {
+                resolved.append(input.substring(cursor));
+                break;
             }
-            return resolved;
-        } catch (IllegalStateException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to resolve property placeholders in: '" + value + "'", e);
+
+            resolved.append(input, cursor, placeholderStart);
+
+            int placeholderEnd = findPlaceholderEnd(input, placeholderStart);
+            if (placeholderEnd < 0) {
+                throw new IllegalStateException("Failed to resolve property placeholders in: '" + input + "'");
+            }
+
+            String placeholderBody = input.substring(placeholderStart + 2, placeholderEnd);
+            PlaceholderParts parts = splitPlaceholderParts(placeholderBody);
+            String propertyValue = properties.getProperty(parts.key);
+
+            if (propertyValue != null) {
+                resolved.append(propertyValue);
+            } else if (parts.defaultValue != null) {
+                resolved.append(parts.defaultValue);
+            } else {
+                unresolvedKeys.add(parts.key);
+                resolved.append(input, placeholderStart, placeholderEnd + 1);
+            }
+
+            cursor = placeholderEnd + 1;
+        }
+
+        return new ResolutionResult(resolved.toString(), new ArrayList<>(unresolvedKeys));
+    }
+
+    private static int findPlaceholderEnd(String input, int start) {
+        int nesting = 0;
+        for (int i = start + 2; i < input.length(); i++) {
+            if (input.startsWith("${", i)) {
+                nesting++;
+                i++;
+                continue;
+            }
+            if (input.charAt(i) == '}') {
+                if (nesting == 0) {
+                    return i;
+                }
+                nesting--;
+            }
+        }
+        return -1;
+    }
+
+    private static PlaceholderParts splitPlaceholderParts(String placeholderBody) {
+        int separator = findTopLevelSeparator(placeholderBody);
+        if (separator < 0) {
+            return new PlaceholderParts(placeholderBody, null);
+        }
+        String key = placeholderBody.substring(0, separator);
+        String defaultValue = placeholderBody.substring(separator + 1);
+        return new PlaceholderParts(key, defaultValue);
+    }
+
+    private static int findTopLevelSeparator(String placeholderBody) {
+        int nesting = 0;
+        for (int i = 0; i < placeholderBody.length(); i++) {
+            if (placeholderBody.startsWith("${", i)) {
+                nesting++;
+                i++;
+                continue;
+            }
+            char current = placeholderBody.charAt(i);
+            if (current == '}') {
+                if (nesting > 0) {
+                    nesting--;
+                }
+                continue;
+            }
+            if (current == ':' && nesting == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static final class PlaceholderParts {
+        private final String key;
+        private final @Nullable String defaultValue;
+
+        private PlaceholderParts(String key, @Nullable String defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
         }
     }
 
-    /**
-     * Returns true if the given key is still present as an unresolved placeholder in the resolved string.
-     * A key is considered unresolved when its placeholder pattern remains literally in the output,
-     * i.e. the resolver could not find a value for it.
-     */
-    private static boolean isKeyStillUnresolved(String resolved, String key, Properties properties) {
-        // If the property exists, it was resolved (even if the resolved value itself contains ${...})
-        if (properties.getProperty(key) != null) {
-            return false;
-        }
-        // No property and no default → placeholder remains literally in the output
-        return resolved.contains("${" + key + "}");
-    }
+    private static final class ResolutionResult {
+        private final String resolved;
+        private final List<String> unresolvedKeys;
 
-    private static List<String> extractPlaceholderKeys(String value) {
-        List<String> keys = new ArrayList<>();
-        Matcher matcher = UNRESOLVED_PLACEHOLDER_PATTERN.matcher(value);
-        while (matcher.find()) {
-            String key = matcher.group(1);
-            // Strip default value (after ':') to show just the key name
-            int separatorIdx = key.indexOf(':');
-            keys.add(separatorIdx != -1 ? key.substring(0, separatorIdx) : key);
+        private ResolutionResult(String resolved, List<String> unresolvedKeys) {
+            this.resolved = resolved;
+            this.unresolvedKeys = unresolvedKeys;
         }
-        return keys;
     }
 }
 

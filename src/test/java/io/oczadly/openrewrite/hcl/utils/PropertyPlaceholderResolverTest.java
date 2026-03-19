@@ -78,6 +78,16 @@ class PropertyPlaceholderResolverTest {
     }
 
     @Test
+    void shouldDeduplicateUnresolvedKeysInErrorMessage() {
+        Properties properties = new Properties();
+
+        assertThatThrownBy(() -> PropertyPlaceholderResolver.resolve("${region}-${region}", properties))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Failed to resolve property placeholders in: '${region}-${region}'")
+            .hasMessageContaining("unresolved keys: region");
+    }
+
+    @Test
     void shouldThrowWhenPlaceholderSyntaxIsInvalid() {
         Properties properties = new Properties();
 
@@ -113,13 +123,22 @@ class PropertyPlaceholderResolverTest {
     void shouldUseSystemPropertiesWhenPropertiesArgumentIsNull() {
         String key = "avm.placeholder.system";
         String value = "resolved-system-value";
+        String previousValue = System.getProperty(key);
         System.setProperty(key, value);
 
         try {
             String result = PropertyPlaceholderResolver.resolve("${avm.placeholder.system}", null);
             assertThat(result).isEqualTo("resolved-system-value");
         } finally {
+            restoreSystemProperty(key, previousValue);
+        }
+    }
+
+    private static void restoreSystemProperty(String key, String previousValue) {
+        if (previousValue == null) {
             System.clearProperty(key);
+        } else {
+            System.setProperty(key, previousValue);
         }
     }
 }
