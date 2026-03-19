@@ -564,6 +564,147 @@ public class AddModuleInputTest implements RewriteTest {
     }
 
     @Test
+    void shouldAddInputWithValueFromInterpolatedPropertyPlaceholder() {
+        String propertyName = "custom.parent.id";
+        String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000";
+        String inputValueProperty = "${custom.parent.id}";
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+                    }
+                    """
+                )
+            );
+        } finally {
+            System.clearProperty(propertyName);
+        }
+    }
+
+
+    @Test
+    void shouldAddInputWithInterpolatedPlaceholderAndLiteralSuffix() {
+        String propertyName = "custom.parent.id";
+        String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups";
+        String inputValueProperty = "${custom.parent.id}/rg-demo-eastus2-001";
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001"
+                    }
+                    """
+                )
+            );
+        } finally {
+            System.clearProperty(propertyName);
+        }
+    }
+
+    @Test
+    void shouldAddInputWithTerraformExpressionFromPlaceholderDefault() {
+        rewriteRun(
+            spec -> spec.recipe(new AddModuleInput(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "0.10.0",
+                "parent_id",
+                null,
+                "${custom.parent.id:${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}}pawel",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.0"
+                }
+                """,
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version   = "0.10.0"
+                  parent_id = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}pawel"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
+    void shouldAddInputWithPlaceholderDefaultWhenPropertyMissing() {
+        rewriteRun(
+            spec -> spec.recipe(new AddModuleInput(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "0.10.0",
+                "parent_id",
+                null,
+                "${custom.parent.id:/subscriptions/00000000-0000-0000-0000-000000000000}",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.0"
+                }
+                """,
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version   = "0.10.0"
+                  parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
     void shouldThrowExceptionWhenSystemPropertyNotSet() {
         String propertyName = "avm.vnet.nonexistent";
 

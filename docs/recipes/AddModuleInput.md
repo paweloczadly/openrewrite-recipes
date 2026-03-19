@@ -10,15 +10,15 @@ Adds a new input argument to OpenTofu module blocks.
 
 ## Options
 
-| Type     | Name               | Description                                                                                                                                                   | Example                                          |
-|----------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| `String` | source             | The source address of the module block to modify. Can reference local modules or remote registry modules.                                                     | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
-| `String` | inputName          | The name of the input variable to be added.                                                                                                                   | `"location"`                                     |
-| `String` | inputValue         | The value of the input variable to be added. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.                               | `"eastus2"`                                      |
-| `String` | inputValueProperty | System property name containing the value to assign to the input variable. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty. | `"avm.vnet.location"`                            |
-| `String` | moduleName         | *Optional*. The name of the module block to modify.                                                                                                           | `"vnet_eastus2_apps"`                            |
-| `String` | version            | *Optional*. The version of the module block to modify.                                                                                                        | `"~> 1.0.0"`                                     |
-| `String` | filePattern        | *Optional*. A glob pattern to match files to apply this recipe to.                                                                                            | `"**/production/**/*.tf""`                       |
+| Type     | Name               | Description                                                                                                                                                                                                                       | Example                                          |
+|----------|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| `String` | source             | The source address of the module block to modify. Can reference local modules or remote registry modules.                                                                                                                         | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
+| `String` | inputName          | The name of the input variable to be added.                                                                                                                                                                                       | `"location"`                                     |
+| `String` | inputValue         | The value of the input variable to be added. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.                                                                                                   | `"eastus2"`                                      |
+| `String` | inputValueProperty | System property name containing the value to assign to the input variable. Supports placeholders like `${property}` and `${property:default}`. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty. | `"${avm.vnet.location:default-location}"`        |
+| `String` | moduleName         | *Optional*. The name of the module block to modify.                                                                                                                                                                               | `"vnet_eastus2_apps"`                            |
+| `String` | version            | *Optional*. The version of the module block to modify.                                                                                                                                                                            | `"~> 1.0.0"`                                     |
+| `String` | filePattern        | *Optional*. A glob pattern to match files to apply this recipe to.                                                                                                                                                                | `"**/production/**/*.tf"`                        |
 
 ## Used by
 
@@ -28,13 +28,13 @@ This recipe is commonly used as part of the following composite recipes:
 
 ## Example
 
-The following example demonstrates adding the `parent_id` input to the `avm-res-network-virtualnetwork` local module.
+The following example demonstrates adding the `parent_id` input to the `avm-res-network-virtualnetwork` module by resolving a system property placeholder.
 
-| Parameter  | Value                                         |
-|------------|-----------------------------------------------|
-| source     | `"../modules/avm-res-network-virtualnetwork"` |
-| inputName  | `"parent_id"`                                 |
-| inputValue | `"local.parrent_id"`                          |
+| Parameter          | Value                                         |
+|--------------------|-----------------------------------------------|
+| source             | `"../modules/avm-res-network-virtualnetwork"` |
+| inputName          | `"parent_id"`                                 |
+| inputValueProperty | `"${avm.vnet.parent_id}"`                     |
 
 **Before**
 
@@ -49,7 +49,7 @@ module "local_vnet" {
 ```hcl
 module "local_vnet" {
     source    = "../modules/avm-res-network-virtualnetwork"
-    parent_id = local.parent_id
+    parent_id = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}"
 }
 ```
 
@@ -68,7 +68,13 @@ recipeList:
       source: "Azure/avm-res-network-virtualnetwork/azurerm"
       version: "~> 0.11.0"
       inputName: "parent_id"
-      inputValue: "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${data.terraform_remote_state.rg_default_eastus.outputs.resource.name}"
+      inputValueProperty: "${avm.vnet.parent_id}"
+```
+
+Then run Rewrite with the system property value to interpolate:
+
+```sh
+./gradlew rewriteRun -Davm.vnet.parent_id='${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}'
 ```
 
 Now that `io.oczadly.avm.migrations.AddParentIdToVnet011x` has been defined, activate it in your build file:
