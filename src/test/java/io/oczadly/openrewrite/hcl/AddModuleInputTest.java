@@ -10,6 +10,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static io.oczadly.openrewrite.hcl.utils.SystemPropertyTestSupport.restoreSystemProperty;
 import static org.openrewrite.hcl.Assertions.hcl;
 
 public class AddModuleInputTest implements RewriteTest {
@@ -521,6 +522,7 @@ public class AddModuleInputTest implements RewriteTest {
     void shouldAddInputWithValueFromSystemProperty() {
         String propertyName = "avm.vnet.parent_id";
         String propertyValue = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}";
+        String previousPropertyValue = System.getProperty(propertyName);
 
         System.setProperty(propertyName, propertyValue);
 
@@ -559,8 +561,192 @@ public class AddModuleInputTest implements RewriteTest {
                     )
             );
         } finally {
-            System.clearProperty(propertyName);
+            restoreSystemProperty(propertyName, previousPropertyValue);
         }
+    }
+
+    @Test
+    void shouldAddInputWithValueFromInterpolatedPropertyPlaceholder() {
+        String propertyName = "custom.parent.id";
+        String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000";
+        String inputValueProperty = "${custom.parent.id}";
+        String previousPropertyValue = System.getProperty(propertyName);
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+                    }
+                    """
+                )
+            );
+        } finally {
+            restoreSystemProperty(propertyName, previousPropertyValue);
+        }
+    }
+
+    @Test
+    void shouldTreatPlaceholderSyntaxAsInterpolationEvenWhenResolvedValueMatchesOriginalPlaceholder() {
+        String propertyName = "foo";
+        String propertyValue = "${foo}";
+        String inputValueProperty = "${foo}";
+        String previousPropertyValue = System.getProperty(propertyName);
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "${foo}"
+                    }
+                    """
+                )
+            );
+        } finally {
+            restoreSystemProperty(propertyName, previousPropertyValue);
+        }
+    }
+
+
+    @Test
+    void shouldAddInputWithInterpolatedPlaceholderAndLiteralSuffix() {
+        String propertyName = "custom.parent.id";
+        String propertyValue = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups";
+        String inputValueProperty = "${custom.parent.id}/rg-demo-eastus2-001";
+        String previousPropertyValue = System.getProperty(propertyName);
+
+        System.setProperty(propertyName, propertyValue);
+
+        try {
+            rewriteRun(
+                spec -> spec.recipe(new AddModuleInput(
+                    null,
+                    "Azure/avm-res-network-virtualnetwork/azurerm",
+                    "0.10.0",
+                    "parent_id",
+                    null,
+                    inputValueProperty,
+                    null
+                )),
+                hcl(
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version = "0.10.0"
+                    }
+                    """,
+                    """
+                    module "avm-res-network-virtualnetwork" {
+                      source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                      version   = "0.10.0"
+                      parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-demo-eastus2-001"
+                    }
+                    """
+                )
+            );
+        } finally {
+            restoreSystemProperty(propertyName, previousPropertyValue);
+        }
+    }
+
+    @Test
+    void shouldAddInputWithTerraformExpressionFromPlaceholderDefault() {
+        rewriteRun(
+            spec -> spec.recipe(new AddModuleInput(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "0.10.0",
+                "parent_id",
+                null,
+                "${custom.parent.id:${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}}pawel",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.0"
+                }
+                """,
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version   = "0.10.0"
+                  parent_id = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.id}pawel"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
+    void shouldAddInputWithPlaceholderDefaultWhenPropertyMissing() {
+        rewriteRun(
+            spec -> spec.recipe(new AddModuleInput(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "0.10.0",
+                "parent_id",
+                null,
+                "${custom.parent.id:/subscriptions/00000000-0000-0000-0000-000000000000}",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.0"
+                }
+                """,
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version   = "0.10.0"
+                  parent_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+                }
+                """
+            )
+        );
     }
 
     @Test
@@ -617,4 +803,5 @@ public class AddModuleInputTest implements RewriteTest {
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
     }
+
 }

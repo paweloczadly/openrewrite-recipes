@@ -1,6 +1,7 @@
 package io.oczadly.openrewrite.hcl;
 
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
+import io.oczadly.openrewrite.hcl.utils.PropertyPlaceholderResolver;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.NonNull;
@@ -96,14 +97,19 @@ public class AddModuleInput extends ModuleRecipe {
                 return block.withBody(newBody);
             }
 
+
             private String resolveInputValue() {
                 if (inputValueProperty != null) {
-                    String propertyValue = System.getProperty(inputValueProperty);
-                    if (propertyValue == null) {
-                        throw new IllegalStateException("System property '" + inputValueProperty + "' is not set");
+                    // Backward compatible behavior: plain property names still resolve via System.getProperty(name).
+                    if (!inputValueProperty.contains("${")) {
+                        String propertyValue = System.getProperty(inputValueProperty);
+                        if (propertyValue == null) {
+                            throw new IllegalStateException("System property '" + inputValueProperty + "' is not set");
+                        }
+                        return propertyValue;
                     }
 
-                    return propertyValue;
+                    return PropertyPlaceholderResolver.resolve(inputValueProperty);
                 }
                 return inputValue;
             }
