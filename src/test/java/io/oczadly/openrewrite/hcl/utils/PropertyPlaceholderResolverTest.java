@@ -121,6 +121,15 @@ class PropertyPlaceholderResolverTest {
     }
 
     @Test
+    void shouldAllowResolvedValueToContainLiteralPlaceholderSyntax() {
+        Properties properties = new Properties();
+
+        String result = PropertyPlaceholderResolver.resolve("${avm.vnet.parent_id:${data.terraform_remote_state.rg.outputs.resource.id}}", properties);
+
+        assertThat(result).isEqualTo("${data.terraform_remote_state.rg.outputs.resource.id}");
+    }
+
+    @Test
     void shouldUseSystemPropertiesWhenPropertiesArgumentIsNull() {
         String key = "avm.placeholder.system";
         String value = "resolved-system-value";

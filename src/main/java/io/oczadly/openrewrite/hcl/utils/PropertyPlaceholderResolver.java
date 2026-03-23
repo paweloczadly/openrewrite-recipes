@@ -7,8 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Utility for resolving placeholders in recipe configuration fields.
@@ -16,8 +14,6 @@ import java.util.regex.Pattern;
  * Handles nested placeholders and Terraform expressions correctly.
  */
 public final class PropertyPlaceholderResolver {
-
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
 
     private PropertyPlaceholderResolver() {
     }
@@ -33,56 +29,13 @@ public final class PropertyPlaceholderResolver {
 
         Properties effectiveProperties = properties != null ? properties : System.getProperties();
 
-        // Extract placeholder keys from the original input
-        Set<String> originalKeys = extractPlaceholderKeys(value);
-        if (originalKeys.isEmpty()) {
-            return value;
-        }
-
-        // Resolve placeholders
         ResolutionResult result = resolvePlaceholders(value, effectiveProperties, true);
-
-        // Check only whether the original placeholders were resolved.
-        // The resolved value may legitimately contain ${...} syntax (e.g. Terraform expressions)
-        // that must be treated as literal text, not as further placeholders to resolve.
-        Set<String> unresolvedFromInput = new LinkedHashSet<>();
-        for (String key : originalKeys) {
-            if (!isKeyResolved(result.resolved, key, effectiveProperties)) {
-                unresolvedFromInput.add(key);
-            }
-        }
-
-        if (!unresolvedFromInput.isEmpty()) {
+        if (!result.unresolvedKeys.isEmpty()) {
             throw new IllegalStateException(
-                "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", unresolvedFromInput) + ")"
+                "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", result.unresolvedKeys) + ")"
             );
         }
         return result.resolved;
-    }
-
-    /**
-     * Returns true if the given key was successfully resolved (either has a property value or a default).
-     */
-    private static boolean isKeyResolved(String resolved, String key, Properties properties) {
-        // If the property exists, it was resolved
-        if (properties.getProperty(key) != null) {
-            return true;
-        }
-        // If the placeholder pattern still exists literally, it's unresolved
-        return !resolved.contains("${" + key + "}");
-    }
-
-    private static Set<String> extractPlaceholderKeys(String value) {
-        Set<String> keys = new LinkedHashSet<>();
-        Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
-        while (matcher.find()) {
-            String placeholderContent = matcher.group(1);
-            // Extract key before ':' (default separator)
-            int separatorIdx = placeholderContent.indexOf(':');
-            String key = separatorIdx != -1 ? placeholderContent.substring(0, separatorIdx) : placeholderContent;
-            keys.add(key);
-        }
-        return keys;
     }
 
     private static ResolutionResult resolvePlaceholders(String input, Properties properties, boolean failOnUnresolved) {
@@ -106,6 +59,9 @@ public final class PropertyPlaceholderResolver {
 
             String placeholderBody = input.substring(placeholderStart + 2, placeholderEnd);
             PlaceholderParts parts = splitPlaceholderParts(placeholderBody);
+            if (!isValidKey(parts.key)) {
+                throw new IllegalStateException("Failed to resolve property placeholders in: '" + input + "'");
+            }
             String propertyValue = properties.getProperty(parts.key);
 
             if (propertyValue != null) {
@@ -130,10 +86,6 @@ public final class PropertyPlaceholderResolver {
         }
 
         return new ResolutionResult(resolved.toString(), new ArrayList<>(unresolvedKeys));
-    }
-
-    private static ResolutionResult resolvePlaceholders(String input, Properties properties) {
-        return resolvePlaceholders(input, properties, true);
     }
 
     private static int findPlaceholderEnd(String input, int start) {
@@ -184,6 +136,10 @@ public final class PropertyPlaceholderResolver {
             }
         }
         return -1;
+    }
+
+    private static boolean isValidKey(String key) {
+        return !key.trim().isEmpty() && !key.contains("${") && !key.contains("}");
     }
 
     private static final class PlaceholderParts {
