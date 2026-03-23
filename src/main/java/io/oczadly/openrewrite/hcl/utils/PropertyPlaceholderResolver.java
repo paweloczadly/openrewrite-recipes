@@ -11,7 +11,9 @@ import java.util.Set;
 /**
  * Utility for resolving placeholders in recipe configuration fields.
  * Supports ${property} and ${property:default} syntax.
- * Handles nested placeholders and Terraform expressions correctly.
+ * Resolves nested placeholders, including nested defaults.
+ * Unresolved placeholders inside default values are preserved as literals,
+ * which allows Terraform expressions like ${data.remote_state.output} in defaults.
  */
 public final class PropertyPlaceholderResolver {
 
@@ -109,9 +111,9 @@ public final class PropertyPlaceholderResolver {
     private static PlaceholderParts splitPlaceholderParts(String placeholderBody) {
         int separator = findTopLevelSeparator(placeholderBody);
         if (separator < 0) {
-            return new PlaceholderParts(placeholderBody, null);
+            return new PlaceholderParts(placeholderBody.trim(), null);
         }
-        String key = placeholderBody.substring(0, separator);
+        String key = placeholderBody.substring(0, separator).trim();
         String defaultValue = placeholderBody.substring(separator + 1);
         return new PlaceholderParts(key, defaultValue);
     }

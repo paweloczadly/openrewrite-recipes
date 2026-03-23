@@ -58,6 +58,16 @@ class PropertyPlaceholderResolverTest {
     }
 
     @Test
+    void shouldResolvePlaceholderWhenKeyContainsWhitespace() {
+        Properties properties = new Properties();
+        properties.setProperty("avm.dns.module", "my_custom_dns");
+
+        String result = PropertyPlaceholderResolver.resolve("module.${ avm.dns.module }.resource", properties);
+
+        assertThat(result).isEqualTo("module.my_custom_dns.resource");
+    }
+
+    @Test
     void shouldThrowWhenRequiredPropertyIsMissingWithoutDefault() {
         Properties properties = new Properties();
 
@@ -86,6 +96,15 @@ class PropertyPlaceholderResolverTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Failed to resolve property placeholders in: '${region}-${region}'")
             .hasMessageContaining("unresolved keys: region");
+    }
+
+    @Test
+    void shouldNormalizeWhitespaceInUnresolvedKeysInErrorMessage() {
+        Properties properties = new Properties();
+
+        assertThatThrownBy(() -> PropertyPlaceholderResolver.resolve("${ region }-${ zone }", properties))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("unresolved keys: region, zone");
     }
 
     @Test
