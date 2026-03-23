@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.1.2...v1.2.0) (2026-03-23)
+
+
+### Features
+
+* **AddModuleInput:** support inputValueProperty placeholder interpolation ([#18](https://github.com/paweloczadly/openrewrite-recipes/issues/18)) ([81ee832](https://github.com/paweloczadly/openrewrite-recipes/commit/81ee83212cd7d61c7464b591b68780387bed748d))
+
 ## [1.1.2](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.1.1...v1.1.2) (2026-03-16)
 
 
