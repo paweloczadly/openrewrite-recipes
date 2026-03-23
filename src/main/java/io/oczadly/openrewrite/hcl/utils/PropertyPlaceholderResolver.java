@@ -69,14 +69,10 @@ public final class PropertyPlaceholderResolver {
             if (propertyValue != null) {
                 resolved.append(propertyValue);
             } else if (parts.defaultValue != null) {
-                // Recursively resolve nested placeholders in default values,
-                // but do NOT fail on unresolved keys (they might be Terraform expressions)
+                // Resolve placeholders in defaults opportunistically; unresolved ${...}
+                // literals are preserved for Terraform-style expressions.
                 ResolutionResult defaultResolution = resolvePlaceholders(parts.defaultValue, properties, false);
                 resolved.append(defaultResolution.resolved);
-                // Only propagate unresolved keys if we're in top-level resolution (failOnUnresolved=true)
-                if (failOnUnresolved) {
-                    unresolvedKeys.addAll(defaultResolution.unresolvedKeys);
-                }
             } else {
                 if (failOnUnresolved) {
                     unresolvedKeys.add(parts.key);
