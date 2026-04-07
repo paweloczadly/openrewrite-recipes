@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.2.0...v1.3.0) (2026-04-07)
+
+
+### Features
+
+* add typed top-level recipes for import, moved, and removed blocks ([#16](https://github.com/paweloczadly/openrewrite-recipes/issues/16)) ([fcc2c33](https://github.com/paweloczadly/openrewrite-recipes/commit/fcc2c33e8564a59016b6fd7f6a93626358794f7b))
+
 # [1.2.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.1.2...v1.2.0) (2026-03-23)
 
 
