@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Utility for resolving placeholders in recipe configuration fields.
@@ -31,13 +32,88 @@ public final class PropertyPlaceholderResolver {
 
         Properties effectiveProperties = properties != null ? properties : System.getProperties();
 
-        ResolutionResult result = resolvePlaceholders(value, effectiveProperties, true);
+        if (!value.contains("${{")) {
+            ResolutionResult result = resolvePlaceholders(value, effectiveProperties, true);
+            if (!result.unresolvedKeys.isEmpty()) {
+                throw new IllegalStateException(
+                    "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", result.unresolvedKeys) + ")"
+                );
+            }
+            return result.resolved;
+        }
+
+        LiteralEscapeResult escapedValue = escapeLiteralTerraformPlaceholders(value);
+
+        ResolutionResult result = resolvePlaceholders(escapedValue.escapedInput, effectiveProperties, true);
         if (!result.unresolvedKeys.isEmpty()) {
             throw new IllegalStateException(
                 "Failed to resolve property placeholders in: '" + value + "' (unresolved keys: " + String.join(", ", result.unresolvedKeys) + ")"
             );
         }
-        return result.resolved;
+        return restoreLiteralTerraformPlaceholders(result.resolved, escapedValue.literals);
+    }
+
+    private static LiteralEscapeResult escapeLiteralTerraformPlaceholders(String input) {
+        StringBuilder escaped = new StringBuilder(input.length());
+        List<LiteralPlaceholder> literals = new ArrayList<>();
+        String tokenPrefix = createUniqueLiteralTokenPrefix(input);
+        int i = 0;
+
+        while (i < input.length()) {
+            if (input.startsWith("${{", i)) {
+                int end = findLiteralTerraformPlaceholderEnd(input, i);
+                if (end < 0) {
+                    throw new IllegalStateException("Failed to resolve property placeholders in: '" + input + "'");
+                }
+
+                String literalBody = input.substring(i + 3, end);
+                String token = tokenPrefix + literals.size() + "__";
+                literals.add(new LiteralPlaceholder(token, "${" + literalBody + "}"));
+                escaped.append(token);
+                i = end + 2;
+                continue;
+            }
+
+            escaped.append(input.charAt(i));
+            i++;
+        }
+
+        return new LiteralEscapeResult(escaped.toString(), literals);
+    }
+
+    private static int findLiteralTerraformPlaceholderEnd(String input, int start) {
+        int nesting = 1;
+        for (int i = start + 3; i < input.length() - 1; i++) {
+            if (input.startsWith("${{", i)) {
+                nesting++;
+                i += 2;
+                continue;
+            }
+            if (input.startsWith("}}", i)) {
+                nesting--;
+                if (nesting == 0) {
+                    return i;
+                }
+                i++;
+            }
+        }
+        return -1;
+    }
+
+    private static String restoreLiteralTerraformPlaceholders(String resolved, List<LiteralPlaceholder> literals) {
+        String restored = resolved;
+        for (LiteralPlaceholder literal : literals) {
+            restored = restored.replace(literal.token, literal.literalValue);
+        }
+        return restored;
+    }
+
+    private static String createUniqueLiteralTokenPrefix(String input) {
+        String tokenPrefix;
+        do {
+            tokenPrefix = "__ORHCL_LITERAL_" + UUID.randomUUID().toString().replace('-', '_') + "_";
+        } while (input.contains(tokenPrefix));
+        return tokenPrefix;
     }
 
     private static ResolutionResult resolvePlaceholders(String input, Properties properties, boolean failOnUnresolved) {
@@ -147,6 +223,26 @@ public final class PropertyPlaceholderResolver {
         private PlaceholderParts(String key, @Nullable String defaultValue) {
             this.key = key;
             this.defaultValue = defaultValue;
+        }
+    }
+
+    private static final class LiteralPlaceholder {
+        private final String token;
+        private final String literalValue;
+
+        private LiteralPlaceholder(String token, String literalValue) {
+            this.token = token;
+            this.literalValue = literalValue;
+        }
+    }
+
+    private static final class LiteralEscapeResult {
+        private final String escapedInput;
+        private final List<LiteralPlaceholder> literals;
+
+        private LiteralEscapeResult(String escapedInput, List<LiteralPlaceholder> literals) {
+            this.escapedInput = escapedInput;
+            this.literals = literals;
         }
     }
 

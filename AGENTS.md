@@ -2,16 +2,20 @@
 
 ## Project snapshot
 - This is a single-module Java library of OpenRewrite recipes for HCL/OpenTofu modules; production code is under `src/main/java/io/oczadly/openrewrite/hcl`.
-- Core abstraction: every recipe extends `ModuleRecipe` (`src/main/java/io/oczadly/openrewrite/hcl/ModuleRecipe.java`), which enforces file filtering and shared module matching.
-- Current recipe set: `AddModuleInput`, `ChangeModuleVersion`, `RemoveModuleInput` (same package).
+- Core abstraction for module-block recipes: those recipes extend `ModuleRecipe` (`src/main/java/io/oczadly/openrewrite/hcl/ModuleRecipe.java`), which enforces file filtering and shared module matching.
+- Public recipe set: `AddImportBlock`, `AddModuleInput`, `AddMovedBlock`, `AddRemovedBlock`, `ChangeModuleVersion`, `RemoveModuleInput` (same package).
+- `AddModuleInput`, `ChangeModuleVersion`, `RemoveModuleInput` are module-block `ModuleRecipe` subclasses.
+- `AddImportBlock`, `AddMovedBlock`, `AddRemovedBlock` extend `Recipe` directly and operate at `Hcl.ConfigFile` level.
+- Internal helper infrastructure for typed top-level recipes lives in `TopLevelBlockRecipeSupport`.
 - Utility matching/parsing helpers live in `src/main/java/io/oczadly/openrewrite/hcl/utils/ModuleBlockPredicates.java`.
 
 ## How recipe execution is structured
-- `ModuleRecipe.getVisitor()` wraps recipe visitors with `Preconditions.check(new FindSourceFiles(filePatternOrDefault), ...)`; default pattern is `**/*.tf`.
-- Recipe visitors operate at `Hcl.Block` level and call `matchesModule(block)` before mutating.
-- Matching semantics are strict: `source` is required and compared exactly, `moduleName` and `version` are optional filters.
-- `ModuleBlockPredicates.getAttributeValue()` strips quotes before comparisons, so recipe matching should use unquoted values.
-- After mutations, recipes schedule `SpacesVisitor` to normalize HCL formatting (see all three recipe classes).
+- For module-block recipes, `ModuleRecipe.getVisitor()` wraps recipe visitors with `Preconditions.check(new FindSourceFiles(filePatternOrDefault), ...)`; default pattern is `**/*.tf`.
+- Module-block recipe visitors operate at `Hcl.Block` level and call `matchesModule(block)` before mutating.
+- Matching semantics for module-block recipes are strict: `source` is required and compared exactly, `moduleName` and `version` are optional filters.
+- `ModuleBlockPredicates.getAttributeValue()` strips quotes before comparisons, so module-block recipe matching should use unquoted values.
+- `AddImportBlock`, `AddMovedBlock`, and `AddRemovedBlock` build typed block bodies and delegate insertion/idempotency behavior to `TopLevelBlockRecipeSupport`.
+- After mutations, recipes schedule `SpacesVisitor` to normalize HCL formatting (applies to module-block recipes and top-level recipes).
 
 ## Local workflows that mirror CI/CD
 - CI (`.github/workflows/ci.yml`) runs commitlint plus `./gradlew build` on Java 17.

@@ -42,7 +42,10 @@ These recipes enable automated modifications to [OpenTofu](https://opentofu.org/
 
 | Name                                                         | Description                                                       |
 |--------------------------------------------------------------|-------------------------------------------------------------------|
+| [Add import block](docs/recipes/AddImportBlock.md)           | Adds a top-level `import` block with configurable `to` and `id`.  |
 | [Add module input](docs/recipes/AddModuleInput.md)           | Adds a specified input variable to a Terraform module block.      |
+| [Add moved block](docs/recipes/AddMovedBlock.md)             | Adds a top-level `moved` block with configurable `from` and `to`. |
+| [Add removed block](docs/recipes/AddRemovedBlock.md)         | Adds a top-level `removed` block with configurable fields.        |
 | [Change module version](docs/recipes/ChangeModuleVersion.md) | Changes the version of a Terraform module.                        |
 | [Remove module input](docs/recipes/RemoveModuleInput.md)     | Removes a specified input variable from a Terraform module block. |
 
