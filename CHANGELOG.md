@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.3.0...v1.4.0) (2026-04-09)
+
+
+### Features
+
+* add AddProvider and RemoveProvider recipes ([#23](https://github.com/paweloczadly/openrewrite-recipes/issues/23)) ([8bed977](https://github.com/paweloczadly/openrewrite-recipes/commit/8bed9772a37df0ee37d3e7fecb691e06f2f07eab))
+
 # [1.3.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.2.0...v1.3.0) (2026-04-07)
 
 
