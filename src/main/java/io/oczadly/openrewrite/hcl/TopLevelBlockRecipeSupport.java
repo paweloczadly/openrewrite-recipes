@@ -16,8 +16,10 @@ import org.openrewrite.tree.ParseError;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 final class TopLevelBlockRecipeSupport {
 
@@ -135,39 +137,48 @@ final class TopLevelBlockRecipeSupport {
                 }
 
                 private String blockSignature(Hcl.Block block) {
-                    List<String> bodySignatures = new ArrayList<>(block.getBody().size());
+                    // For idempotency, we compare blocks by collecting their normalized attributes
+                    // in a map to handle different ordering while preserving semantic meaning.
+                    Map<String, String> normalizedAttributes = new LinkedHashMap<>();
+                    List<String> nestedBlocks = new ArrayList<>();
+
                     for (BodyContent bodyContent : block.getBody()) {
-                        bodySignatures.add(bodyContentSignature(bodyContent));
+                        if (bodyContent instanceof Hcl.Attribute) {
+                            Hcl.Attribute attribute = (Hcl.Attribute) bodyContent;
+                            String attrName = attribute.getSimpleName().toLowerCase(Locale.ROOT);
+                            String attrValue = normalizeHcl(attribute.getValue().printTrimmed(getCursor()));
+                            normalizedAttributes.put(attrName, attrValue);
+                        } else if (bodyContent instanceof Hcl.Block) {
+                            nestedBlocks.add(blockSignature((Hcl.Block) bodyContent));
+                        } else {
+                            nestedBlocks.add("o:" + normalizeHcl(bodyContent.printTrimmed(getCursor())));
+                        }
                     }
-                    Collections.sort(bodySignatures);
 
                     List<String> labelSignatures = new ArrayList<>(block.getLabels().size());
                     for (Label label : block.getLabels()) {
                         labelSignatures.add(normalizeHcl(((Tree) label).printTrimmed(getCursor())));
                     }
 
+                    // Build signature: sort nested blocks and attributes for comparison
+                    Collections.sort(nestedBlocks);
+                    List<String> sortedAttrs = new ArrayList<>();
+                    for (Map.Entry<String, String> entry : normalizedAttributes.entrySet()) {
+                        sortedAttrs.add("a:" + entry.getKey() + "=" + entry.getValue());
+                    }
+                    Collections.sort(sortedAttrs);
+
+                    List<String> allBodySignatures = new ArrayList<>(sortedAttrs);
+                    allBodySignatures.addAll(nestedBlocks);
+
                     return "b:"
                            + blockTypeName(block)
                            + "|labels="
                            + String.join(",", labelSignatures)
                            + "|body="
-                           + String.join(";", bodySignatures);
+                           + String.join(";", allBodySignatures);
                 }
 
-                private String bodyContentSignature(BodyContent bodyContent) {
-                    if (bodyContent instanceof Hcl.Attribute) {
-                        Hcl.Attribute attribute = (Hcl.Attribute) bodyContent;
-                        return "a:"
-                               + attribute.getSimpleName().toLowerCase(Locale.ROOT)
-                               + "="
-                               + normalizeHcl(attribute.getValue().printTrimmed(getCursor()));
-                    }
-                    if (bodyContent instanceof Hcl.Block) {
-                        return blockSignature((Hcl.Block) bodyContent);
-                    }
-
-                    return "o:" + normalizeHcl(bodyContent.printTrimmed(getCursor()));
-                }
             }
         );
     }
@@ -202,6 +213,23 @@ final class TopLevelBlockRecipeSupport {
                 fieldName,
                 value,
                 "'" + fieldName + "' cannot be empty when specified."
+            ));
+        }
+        return validated;
+    }
+
+    static Validated<Object> validateRequiredHclIdentifier(Validated<Object> validated,
+                                                           String fieldName,
+                                                           @Nullable String value) {
+        String normalizedValue = normalizeNullable(value);
+        if (normalizedValue == null || normalizedValue.contains("${")) {
+            return validated;
+        }
+        if (!normalizedValue.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+            return validated.and(Validated.invalid(
+                fieldName,
+                value,
+                "'" + fieldName + "' must be a valid HCL identifier matching [A-Za-z_][A-Za-z0-9_]*."
             ));
         }
         return validated;
@@ -392,6 +420,9 @@ final class TopLevelBlockRecipeSupport {
      * Normalizes HCL text for idempotency comparison by removing whitespace and comments
      * outside quoted string literals. Whitespace and comment-like content inside strings
      * is preserved so values like {@code "a b"} and {@code "ab"} remain distinct.
+     *
+     * <p>This implementation carefully handles escape sequences to ensure the normalized
+     * output is semantically equivalent to the input.</p>
      */
     private static String normalizeHcl(String hclText) {
         StringBuilder result = new StringBuilder(hclText.length());
@@ -403,6 +434,7 @@ final class TopLevelBlockRecipeSupport {
         for (int i = 0; i < hclText.length(); i++) {
             char c = hclText.charAt(i);
 
+            // Handle end of line comment
             if (inLineComment) {
                 if (c == '\n' || c == '\r') {
                     inLineComment = false;
@@ -410,32 +442,37 @@ final class TopLevelBlockRecipeSupport {
                 continue;
             }
 
+            // Handle end of block comment
             if (inBlockComment) {
                 if (c == '*' && i + 1 < hclText.length() && hclText.charAt(i + 1) == '/') {
                     inBlockComment = false;
-                    i++;
+                    i++; // Skip the '/'
                 }
                 continue;
             }
 
+            // Handle escaped character within string
             if (escaped) {
                 result.append(c);
                 escaped = false;
                 continue;
             }
 
+            // Detect escape sequence start within string
             if (c == '\\' && inString) {
                 result.append(c);
                 escaped = true;
                 continue;
             }
 
+            // Toggle string state
             if (c == '"') {
                 inString = !inString;
                 result.append(c);
                 continue;
             }
 
+            // Detect comments only outside strings
             if (!inString) {
                 if (c == '#') {
                     inLineComment = true;
@@ -445,19 +482,19 @@ final class TopLevelBlockRecipeSupport {
                     char next = hclText.charAt(i + 1);
                     if (next == '/') {
                         inLineComment = true;
-                        i++;
+                        i++; // Skip the second '/'
                         continue;
                     }
                     if (next == '*') {
                         inBlockComment = true;
-                        i++;
+                        i++; // Skip the '*'
                         continue;
                     }
                 }
             }
 
+            // Skip whitespace outside strings
             if (!inString && Character.isWhitespace(c)) {
-                // Skip all out-of-string whitespace; don't add anything to the result
                 continue;
             }
 
