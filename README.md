@@ -40,16 +40,17 @@ These recipes enable automated modifications to [OpenTofu](https://opentofu.org/
 > The main focus is [OpenTofu](https://opentofu.org/), but these recipes should work with [Terraform](https://developer.hashicorp.com/terraform) too.
 **Available recipes**
 
-| Name                                                         | Description                                                                              |
-|--------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| [Add import block](docs/recipes/AddImportBlock.md)           | Adds a top-level `import` block with configurable `to` and `id`.                         |
-| [Add module input](docs/recipes/AddModuleInput.md)           | Adds a specified input variable to a Terraform module block.                             |
-| [Add moved block](docs/recipes/AddMovedBlock.md)             | Adds a top-level `moved` block with configurable `from` and `to`.                        |
-| [Add removed block](docs/recipes/AddRemovedBlock.md)         | Adds a top-level `removed` block with configurable fields.                               |
-| [Change module version](docs/recipes/ChangeModuleVersion.md) | Changes the version of a Terraform module.                                               |
-| [Remove module input](docs/recipes/RemoveModuleInput.md)     | Removes a specified input variable from a Terraform module block.                        |
-| [Add provider](docs/recipes/AddProvider.md)                  | Adds/creates `terraform.required_providers` entries and optional provider config blocks. |
-| [Remove provider](docs/recipes/RemoveProvider.md)            | Removes `terraform.required_providers` entries and optional provider config blocks.      |
+| Name                                                                           | Description                                                                              |
+|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| [Add import block](docs/recipes/AddImportBlock.md)                             | Adds a top-level `import` block with configurable `to` and `id`.                         |
+| [Add module input](docs/recipes/AddModuleInput.md)                             | Adds a specified input variable to a Terraform module block.                             |
+| [Add moved block](docs/recipes/AddMovedBlock.md)                               | Adds a top-level `moved` block with configurable `from` and `to`.                        |
+| [Add removed block](docs/recipes/AddRemovedBlock.md)                           | Adds a top-level `removed` block with configurable fields.                               |
+| [Change module version](docs/recipes/ChangeModuleVersion.md)                   | Changes the version of a Terraform module.                                               |
+| [Convert local value in path](docs/recipes/ConvertLocalValueInPath.md)         | Transforms attribute values in nested map structures using path expressions.             |
+| [Remove module input](docs/recipes/RemoveModuleInput.md)                       | Removes a specified input variable from a Terraform module block.                        |
+| [Add provider](docs/recipes/AddProvider.md)                                    | Adds/creates `terraform.required_providers` entries and optional provider config blocks. |
+| [Remove provider](docs/recipes/RemoveProvider.md)                              | Removes `terraform.required_providers` entries and optional provider config blocks.      |
 
 ---
 
