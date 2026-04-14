@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.4.0...v1.5.0) (2026-04-14)
+
+
+### Features
+
+* implement ConvertLocalValueInPath recipe with two-phase module filtering ([#24](https://github.com/paweloczadly/openrewrite-recipes/issues/24)) ([2d48267](https://github.com/paweloczadly/openrewrite-recipes/commit/2d482671f253829dbd827dc538107f2a496f6455))
+
 # [1.4.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.3.0...v1.4.0) (2026-04-09)
 
 
