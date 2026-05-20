@@ -32,8 +32,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Set up OSS Community Develocity Instance for Gradle
+        uses: gradle/actions/setup-gradle@v6.1.0
+        with:
+          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       - name: Release
         uses: cycjimmy/semantic-release-action@v4
         id: semantic
