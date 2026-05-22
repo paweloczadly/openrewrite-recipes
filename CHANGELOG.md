@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.1...v1.5.2) (2026-05-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.openrewrite.recipe:rewrite-recipe-bom to v3.31.0 ([#37](https://github.com/paweloczadly/openrewrite-recipes/issues/37)) ([dbeaec7](https://github.com/paweloczadly/openrewrite-recipes/commit/dbeaec703143403ea64b52f9a59f65589bc43ae4))
+
 ## [1.5.1](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.0...v1.5.1) (2026-05-13)
 
 
