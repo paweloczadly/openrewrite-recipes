@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.3...v1.5.4) (2026-06-07)
+
+
+### Bug Fixes
+
+* **deps:** update junit-framework monorepo to v6 ([#14](https://github.com/paweloczadly/openrewrite-recipes/issues/14)) ([e81da13](https://github.com/paweloczadly/openrewrite-recipes/commit/e81da13c7233ded753120b4a10234c50d5583a4c))
+
 ## [1.5.3](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.2...v1.5.3) (2026-06-05)
 
 
