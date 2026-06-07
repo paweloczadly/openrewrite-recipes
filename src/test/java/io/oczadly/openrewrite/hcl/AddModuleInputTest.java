@@ -779,11 +779,11 @@ public class AddModuleInputTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject invalid inputName=''{0}'' inputValue=''{1}'', inputValueProperty=''{2}''")
-    @CsvSource(delimiter = '|', textBlock = """
-        ''   | value | ''            | 'inputName' must be specified and cannot be empty.
-        ' '  | value | ''            | 'inputName' must be specified and cannot be empty.
-        name | ''    | ' '           | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
-        name | ' '   | ''            | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      ""   | value | ""            | 'inputName' must be specified and cannot be empty.
+      " "  | value | ""            | 'inputName' must be specified and cannot be empty.
+      name | ""    | " "           | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
+      name | " "   | ""            | Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.
         name | value | valueProperty | Only one of 'inputValue' or 'inputValueProperty' should be specified.
         """)
     void shouldRejectInvalidInputNameAndInputValue(String inputName, String inputValue, String inputValueProperty, String expectedMessage) {

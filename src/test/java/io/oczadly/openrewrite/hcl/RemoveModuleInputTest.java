@@ -326,9 +326,9 @@ public class RemoveModuleInputTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject invalid inputName=''{0}''")
-    @CsvSource(delimiter = '|', textBlock = """
-        ''   | 'inputName' must be specified and cannot be empty.
-        ' '  | 'inputName' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      ""   | 'inputName' must be specified and cannot be empty.
+      " "  | 'inputName' must be specified and cannot be empty.
         """)
     void shouldRejectInvalidInputName(String inputName, String expectedMessage) {
         RemoveModuleInput recipe = new RemoveModuleInput(
