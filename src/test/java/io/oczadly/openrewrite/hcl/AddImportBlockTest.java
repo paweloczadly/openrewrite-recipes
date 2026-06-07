@@ -465,9 +465,9 @@ public class AddImportBlockTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject invalid to=''{0}'' id=''{1}''")
-    @CsvSource(delimiter = '|', textBlock = """
-        ''    | value | 'to' must be specified and cannot be empty.
-        value | ''    | 'id' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+        ""    | value | 'to' must be specified and cannot be empty.
+        value | ""    | 'id' must be specified and cannot be empty.
         """)
     void shouldRejectInvalidOptions(String to, String id, String expectedMessage) {
         AddImportBlock recipe = new AddImportBlock(to, id, null);
@@ -480,10 +480,10 @@ public class AddImportBlockTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject blank module filters moduleName=''{0}'' source=''{1}'' version=''{2}''")
-    @CsvSource(delimiter = '|', textBlock = """
-        ' ' | value | value | 'moduleName' cannot be empty when specified.
-        value | ' ' | value | 'source' cannot be empty when specified.
-        value | value | ' ' | 'version' cannot be empty when specified.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+        " " | value | value | 'moduleName' cannot be empty when specified.
+        value | " " | value | 'source' cannot be empty when specified.
+        value | value | " " | 'version' cannot be empty when specified.
         """)
     void shouldRejectBlankOptionalModuleFilters(String moduleName, String source, String version, String expectedMessage) {
         AddImportBlock recipe = new AddImportBlock(

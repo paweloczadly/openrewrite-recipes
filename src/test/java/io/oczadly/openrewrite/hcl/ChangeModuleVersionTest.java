@@ -54,7 +54,7 @@ public class ChangeModuleVersionTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should change version with constraint ''{0}''")
-    @CsvSource(delimiter = '|', textBlock = """
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
         =     | = 0.10.0   | = 0.11.0
         !=    | != 0.10.0  | != 0.11.0
         >=    | >= 0.10.0  | >= 0.11.0
@@ -166,11 +166,11 @@ public class ChangeModuleVersionTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject invalid version=''{0}'' newVersion=''{1}''")
-    @CsvSource(delimiter = '|', textBlock = """
-        ''   | value | 'version' must be specified and cannot be empty.
-        ' '  | value | 'version' must be specified and cannot be empty.
-        name | ''    | 'newVersion' must be specified and cannot be empty.
-        name | ' '   | 'newVersion' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      ""   | value | 'version' must be specified and cannot be empty.
+      " "  | value | 'version' must be specified and cannot be empty.
+      name | ""    | 'newVersion' must be specified and cannot be empty.
+      name | " "   | 'newVersion' must be specified and cannot be empty.
         """)
     void shouldRejectInvalidOldVersionAndNewVersion(String version, String newVersion, String expectedMessage) {
         ChangeModuleVersion recipe = new ChangeModuleVersion(

@@ -368,9 +368,9 @@ class RemoveProviderTest implements RewriteTest {
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', textBlock = """
-        ''  | 'providerName' must be specified and cannot be empty.
-        ' ' | 'providerName' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      ""  | 'providerName' must be specified and cannot be empty.
+      " " | 'providerName' must be specified and cannot be empty.
         """)
     void shouldRejectInvalidName(String name, String expectedMessage) {
         RemoveProvider recipe = new RemoveProvider(name, null, null, null, null, null);
@@ -383,10 +383,10 @@ class RemoveProviderTest implements RewriteTest {
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', textBlock = """
-        ' ' | value | value | 'source' cannot be empty when specified.
-        value | ' ' | value | 'version' cannot be empty when specified.
-        value | value | ' ' | 'moduleName' cannot be empty when specified.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      " " | value | value | 'source' cannot be empty when specified.
+      value | " " | value | 'version' cannot be empty when specified.
+      value | value | " " | 'moduleName' cannot be empty when specified.
         """)
     void shouldRejectBlankOptionalFilters(String moduleSource, String moduleVersion, String moduleName, String expectedMessage) {
         RemoveProvider recipe = new RemoveProvider("modtm", null, moduleSource, moduleVersion, moduleName, null);

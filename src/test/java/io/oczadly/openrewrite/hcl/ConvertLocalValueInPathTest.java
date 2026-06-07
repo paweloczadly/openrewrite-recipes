@@ -263,10 +263,10 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', textBlock = """
-        ''          | records.*.value | stringToList | 'localName' must be specified and cannot be empty.
-        txt_records | ''              | stringToList | 'attributePath' must be specified and cannot be empty.
-        txt_records | records.*.value | ''           | 'transformation' must be specified and cannot be empty.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      ""          | records.*.value | stringToList | 'localName' must be specified and cannot be empty.
+      txt_records | ""              | stringToList | 'attributePath' must be specified and cannot be empty.
+      txt_records | records.*.value | ""           | 'transformation' must be specified and cannot be empty.
         """)
     void shouldFailValidationWhenRequiredFieldsMissing(String localName,
                                                        String attributePath,
@@ -310,11 +310,11 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
     }
 
     @ParameterizedTest
-    @CsvSource(delimiter = '|', textBlock = """
-        ' ' | value | value | value | 'source' cannot be empty when specified.
-        value | ' ' | value | value | 'version' cannot be empty when specified.
-        value | value | ' ' | value | 'moduleName' cannot be empty when specified.
-        value | value | value | ' ' | 'filePattern' cannot be empty when specified.
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+      " " | value | value | value | 'source' cannot be empty when specified.
+      value | " " | value | value | 'version' cannot be empty when specified.
+      value | value | " " | value | 'moduleName' cannot be empty when specified.
+      value | value | value | " " | 'filePattern' cannot be empty when specified.
         """)
     void shouldRejectBlankOptionalFilters(String source,
                                           String version,
