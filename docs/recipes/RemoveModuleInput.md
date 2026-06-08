@@ -18,6 +18,10 @@ Removes a specified input variable from a Terraform module block.
 | `String` | version     | *Optional*. The version of the module block to modify.                                                    | `"~> 1.0.0"`                                     |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
 
+## Version filter semantics
+
+When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match only when their `version` attribute is a concrete stable version literal such as `0.10.2`; missing, dynamic/interpolated, invalid, or constraint-valued module versions do not match.
+
 ## Used by
 
 This recipe is commonly used as part of the following composite recipes:

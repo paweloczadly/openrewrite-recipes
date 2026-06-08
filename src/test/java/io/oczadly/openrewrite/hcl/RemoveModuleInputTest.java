@@ -242,6 +242,46 @@ public class RemoveModuleInputTest implements RewriteTest {
     }
 
     @Test
+    void shouldRemoveInputWhenModuleVersionMatchesConstraint() {
+        rewriteRun(
+            spec -> spec.recipe(new RemoveModuleInput(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                "~> 0.10.1",
+                "resource_group_name",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source              = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version             = "0.10.2"
+                  resource_group_name = "myResourceGroup"
+                }
+
+                module "avm-res-network-virtualnetwork" {
+                  source              = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version             = "0.11.0"
+                  resource_group_name = "myResourceGroup"
+                }
+                """,
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.2"
+                }
+
+                module "avm-res-network-virtualnetwork" {
+                  source              = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version             = "0.11.0"
+                  resource_group_name = "myResourceGroup"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
     void shouldNotModifyFileWithoutTargetModule() {
         rewriteRun(
             hcl(

@@ -2,6 +2,7 @@ package io.oczadly.openrewrite.hcl;
 
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
 import io.oczadly.openrewrite.hcl.utils.PropertyPlaceholderResolver;
+import io.oczadly.openrewrite.hcl.utils.VersionConstraintMatcher;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.hcl.HclParser;
@@ -44,7 +45,7 @@ final class TopLevelBlockRecipeSupport {
         HclParser parser = HclParser.builder().build();
         String normalizedModuleName = resolveOptionalFilterValue(moduleName, "moduleName");
         String normalizedSource = resolveOptionalFilterValue(source, "source");
-        String normalizedVersion = resolveOptionalFilterValue(version, "version");
+        String normalizedVersion = resolveOptionalVersionFilterValue(version);
         boolean hasModuleFilter = normalizedModuleName != null || normalizedSource != null || normalizedVersion != null;
         // Render once and pre-parse a candidate block for idempotency checks.
         String blockText = renderBlockText(blockType, blockBody);
@@ -122,7 +123,7 @@ final class TopLevelBlockRecipeSupport {
                         if (source != null && !source.equals(ModuleBlockPredicates.getAttributeValue(block, "source"))) {
                             continue;
                         }
-                        if (version != null && !version.equals(ModuleBlockPredicates.getAttributeValue(block, "version"))) {
+                        if (version != null && !VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"))) {
                             continue;
                         }
 
@@ -218,6 +219,18 @@ final class TopLevelBlockRecipeSupport {
         return validated;
     }
 
+    static Validated<Object> validateOptionalVersionConstraint(Validated<Object> validated,
+                                                               @Nullable String value) {
+        if (value != null && !value.trim().isEmpty() && !value.contains("${") && !VersionConstraintMatcher.isValidConstraint(value)) {
+            return validated.and(Validated.invalid(
+                "version",
+                value,
+                VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE
+            ));
+        }
+        return validated;
+    }
+
     static Validated<Object> validateRequiredHclIdentifier(Validated<Object> validated,
                                                            String fieldName,
                                                            @Nullable String value) {
@@ -276,6 +289,14 @@ final class TopLevelBlockRecipeSupport {
         }
 
         return normalizedResolved;
+    }
+
+    static @Nullable String resolveOptionalVersionFilterValue(@Nullable String value) {
+        String resolved = resolveOptionalFilterValue(value, "version");
+        if (resolved != null && !VersionConstraintMatcher.isValidConstraint(resolved)) {
+            throw new IllegalStateException(VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE);
+        }
+        return resolved;
     }
 
     static String quoteHclString(String value) {

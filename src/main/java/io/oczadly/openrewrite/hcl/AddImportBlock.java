@@ -25,7 +25,7 @@ public class AddImportBlock extends Recipe {
     @Nullable
     String source;
 
-    @Option(displayName = "Version", description = "Optional module version filter; recipe applies only in files containing a matching module", required = false)
+    @Option(displayName = "Version", description = "Optional module semantic version constraint filter; recipe applies only in files containing a matching module", required = false)
     @Nullable
     String version;
 
@@ -85,6 +85,7 @@ public class AddImportBlock extends Recipe {
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
+        validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "to", to);
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "id", id);
         return validated;

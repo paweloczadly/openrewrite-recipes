@@ -53,18 +53,19 @@ public class ChangeModuleVersionTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest(name = "should change version with constraint ''{0}''")
+    @ParameterizedTest(name = "should change concrete module version when filter constraint is ''{0}''")
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-        =     | = 0.10.0   | = 0.11.0
-        !=    | != 0.10.0  | != 0.11.0
-        >=    | >= 0.10.0  | >= 0.11.0
-        >     | > 0.10.0   | > 0.11.0
-        <=    | <= 0.10.0  | <= 0.11.0
-        <     | < 0.10.0   | < 0.11.0
-        ~>    | ~> 0.10.0  | ~> 0.11.0
-        ~>    | ~> 0.10    | ~> 0.11
+        0.10.0              | 0.10.0 | 0.11.0
+        = 0.10.0            | 0.10.0 | 0.11.0
+        >= 0.10.0           | 0.10.7 | 0.11.0
+        > 0.10.0            | 0.10.7 | 0.11.0
+        <= 0.10.7           | 0.10.7 | 0.11.0
+        < 0.11.0            | 0.10.7 | 0.11.0
+        ~> 0.10.1           | 0.10.2 | 0.11.0
+        ~> 0.10             | 0.10.7 | 0.11.0
+        >= 0.10.0, < 0.11.0 | 0.10.7 | 0.11.0
         """)
-    void shouldHandleVersionConstraints(String constraint, String version, String newVersion) {
+    void shouldHandleVersionConstraints(String version, String moduleVersion, String newVersion) {
         rewriteRun(
             spec -> spec.recipe(new ChangeModuleVersion(
                 null,
@@ -83,7 +84,7 @@ public class ChangeModuleVersionTest implements RewriteTest {
                   location            = "eastus2"
                   resource_group_name = "myResourceGroup"
                 }
-                """.formatted(version),
+                """.formatted(moduleVersion),
                 """
                 module "avm-res-network-virtualnetwork" {
                   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
@@ -94,6 +95,53 @@ public class ChangeModuleVersionTest implements RewriteTest {
                   resource_group_name = "myResourceGroup"
                 }
                 """.formatted(newVersion)
+            )
+        );
+    }
+
+    @ParameterizedTest(name = "should not change module version ''{0}'' for semantic filter")
+    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
+        0.11.0                | ~> 0.10.1
+        ${var.module_version} | >= 0.10.0
+        ~> 0.10.0             | >= 0.10.0
+        invalid               | >= 0.10.0
+        """)
+    void shouldNotMatchNonConcreteOrOutOfRangeModuleVersion(String moduleVersion, String versionFilter) {
+        rewriteRun(
+            spec -> spec.recipe(new ChangeModuleVersion(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                versionFilter,
+                "0.11.0",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "%s"
+                }
+                """.formatted(moduleVersion)
+            )
+        );
+    }
+
+    @Test
+    void shouldNotMatchMissingModuleVersionWhenVersionFilterIsProvided() {
+        rewriteRun(
+            spec -> spec.recipe(new ChangeModuleVersion(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                ">= 0.10.0",
+                "0.11.0",
+                null
+            )),
+            hcl(
+                """
+                module "avm-res-network-virtualnetwork" {
+                  source = "Azure/avm-res-network-virtualnetwork/azurerm"
+                }
+                """
             )
         );
     }
@@ -169,8 +217,9 @@ public class ChangeModuleVersionTest implements RewriteTest {
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
       ""   | value | 'version' must be specified and cannot be empty.
       " "  | value | 'version' must be specified and cannot be empty.
-      name | ""    | 'newVersion' must be specified and cannot be empty.
-      name | " "   | 'newVersion' must be specified and cannot be empty.
+      0.10.0 | ""    | 'newVersion' must be specified and cannot be empty.
+      0.10.0 | " "   | 'newVersion' must be specified and cannot be empty.
+      name   | value  | 'version' must be a valid semantic version constraint.
         """)
     void shouldRejectInvalidOldVersionAndNewVersion(String version, String newVersion, String expectedMessage) {
         ChangeModuleVersion recipe = new ChangeModuleVersion(

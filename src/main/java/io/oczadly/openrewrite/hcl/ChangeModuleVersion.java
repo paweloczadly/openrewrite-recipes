@@ -1,6 +1,7 @@
 package io.oczadly.openrewrite.hcl;
 
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
+import io.oczadly.openrewrite.hcl.utils.VersionConstraintMatcher;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.NonNull;
@@ -93,7 +94,7 @@ public class ChangeModuleVersion extends ModuleRecipe {
         // Remove quotes if present
         currentVersion = ModuleBlockPredicates.removeQuotes(currentVersion);
 
-        if (!version.equals(currentVersion)) {
+        if (!VersionConstraintMatcher.matches(version, currentVersion)) {
             return block;
         }
 

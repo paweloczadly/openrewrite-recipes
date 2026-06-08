@@ -41,6 +41,17 @@ public class ModuleRecipeTest implements RewriteTest {
     }
 
     @Test
+    void shouldRejectInvalidVersionConstraint() {
+        TestModuleRecipe recipe = new TestModuleRecipe("module-name", "source-value", ">= 1.x", null);
+        Validated<Object> validation = recipe.validate();
+
+        assertThat(validation.isInvalid()).isTrue();
+        assertThat(validation.failures()).hasSize(1);
+        assertThat(validation.failures().getFirst().getProperty()).isEqualTo("version");
+        assertThat(validation.failures().getFirst().getMessage()).isEqualTo("'version' must be a valid semantic version constraint.");
+    }
+
+    @Test
     void shouldRejectNullSource() {
         TestModuleRecipe recipe = new TestModuleRecipe("module-name", null, null, null);
         Validated<Object> validation = recipe.validate();

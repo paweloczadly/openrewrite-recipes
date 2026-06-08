@@ -265,6 +265,55 @@ public class AddImportBlockTest implements RewriteTest {
     }
 
     @Test
+    void shouldAddImportBlockWhenModuleVersionMatchesConstraint() {
+        rewriteRun(
+            spec -> spec.recipe(new AddImportBlock(
+                "private_dns_zone",
+                "Azure/avm-res-network-privatednszone/azurerm",
+                ">= 0.3.0, < 0.4.0",
+                "module.private_dns_zone.azapi_resource.private_dns_zone",
+                "resource-id",
+                null
+            )),
+            hcl(
+                """
+                module "private_dns_zone" {
+                  source  = "Azure/avm-res-network-privatednszone/azurerm"
+                  version = "0.3.5"
+                }
+                """,
+                """
+                module "private_dns_zone" {
+                  source  = "Azure/avm-res-network-privatednszone/azurerm"
+                  version = "0.3.5"
+                }
+
+                import {
+                  to = module.private_dns_zone.azapi_resource.private_dns_zone
+                  id = "resource-id"
+                }
+                """
+            ),
+            hcl(
+                """
+                module "private_dns_zone" {
+                  source  = "Azure/avm-res-network-privatednszone/azurerm"
+                  version = "0.4.0"
+                }
+                """
+            ),
+            hcl(
+                """
+                module "private_dns_zone" {
+                  source  = "Azure/avm-res-network-privatednszone/azurerm"
+                  version = "~> 0.3.0"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
     void shouldResolveModuleFilterPlaceholders() {
         String moduleNameKey = "avm.import.filter.moduleName";
         String sourceKey = "avm.import.filter.source";
@@ -311,6 +360,41 @@ public class AddImportBlockTest implements RewriteTest {
             restoreSystemProperty(moduleNameKey, moduleNamePrevious);
             restoreSystemProperty(sourceKey, sourcePrevious);
             restoreSystemProperty(versionKey, versionPrevious);
+        }
+    }
+
+    @Test
+    void shouldThrowExceptionWhenVersionFilterPlaceholderResolvesToInvalidConstraint() {
+        String versionKey = "avm.import.filter.invalidVersion";
+        String previousVersion = System.getProperty(versionKey);
+
+        System.setProperty(versionKey, ">= 0.3.x");
+
+        try {
+            AddImportBlock recipe = new AddImportBlock(
+                "private_dns_zone",
+                "Azure/avm-res-network-privatednszone/azurerm",
+                "${" + versionKey + "}",
+                "module.private_dns_zone.azapi_resource.private_dns_zone",
+                "resource-id",
+                null
+            );
+
+            assertThatThrownBy(() -> rewriteRun(
+                spec -> spec.recipe(recipe),
+                hcl(
+                    """
+                    module "private_dns_zone" {
+                      source  = "Azure/avm-res-network-privatednszone/azurerm"
+                      version = "0.3.5"
+                    }
+                    """
+                )
+            ))
+                .hasRootCauseInstanceOf(IllegalStateException.class)
+                .hasRootCauseMessage("'version' must be a valid semantic version constraint.");
+        } finally {
+            restoreSystemProperty(versionKey, previousVersion);
         }
     }
 
@@ -481,8 +565,8 @@ public class AddImportBlockTest implements RewriteTest {
 
     @ParameterizedTest(name = "should reject blank module filters moduleName=''{0}'' source=''{1}'' version=''{2}''")
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-        " " | value | value | 'moduleName' cannot be empty when specified.
-        value | " " | value | 'source' cannot be empty when specified.
+        " " | value | 1.0.0 | 'moduleName' cannot be empty when specified.
+        value | " " | 1.0.0 | 'source' cannot be empty when specified.
         value | value | " " | 'version' cannot be empty when specified.
         """)
     void shouldRejectBlankOptionalModuleFilters(String moduleName, String source, String version, String expectedMessage) {
@@ -500,6 +584,24 @@ public class AddImportBlockTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    void shouldRejectInvalidVersionConstraintModuleFilter() {
+        AddImportBlock recipe = new AddImportBlock(
+            "private_dns_zone",
+            "Azure/avm-res-network-privatednszone/azurerm",
+            ">= 0.3.x",
+            "module.private_dns_zone.azapi_resource.private_dns_zone",
+            "resource-id",
+            null
+        );
+
+        Validated<Object> validated = recipe.validate();
+
+        assertThat(validated.isValid()).isFalse();
+        assertThat(validated.failures()).hasSize(1);
+        assertThat(validated.failures().getFirst().getMessage()).isEqualTo("'version' must be a valid semantic version constraint.");
     }
 
     @Test

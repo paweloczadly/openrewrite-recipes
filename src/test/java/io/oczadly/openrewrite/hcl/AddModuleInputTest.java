@@ -542,7 +542,7 @@ public class AddModuleInputTest implements RewriteTest {
                             """
                             module "avm-res-network-virtualnetwork" {
                               source              = "Azure/avm-res-network-virtualnetwork/azurerm"
-                              version             = "~> 0.10.0"
+                              version             = "0.10.2"
                               address_space       = ["10.0.0.0/16"]
                               location            = "eastus2"
                               resource_group_name = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.name}"
@@ -551,7 +551,7 @@ public class AddModuleInputTest implements RewriteTest {
                             """
                             module "avm-res-network-virtualnetwork" {
                               source              = "Azure/avm-res-network-virtualnetwork/azurerm"
-                              version             = "~> 0.10.0"
+                              version             = "0.10.2"
                               address_space       = ["10.0.0.0/16"]
                               location            = "eastus2"
                               resource_group_name = "${data.terraform_remote_state.rg_default_eastus.outputs.resource.name}"
