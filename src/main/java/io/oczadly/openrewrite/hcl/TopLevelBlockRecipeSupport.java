@@ -3,6 +3,7 @@ package io.oczadly.openrewrite.hcl;
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
 import io.oczadly.openrewrite.hcl.utils.PropertyPlaceholderResolver;
 import io.oczadly.openrewrite.hcl.utils.VersionConstraintMatcher;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.hcl.HclParser;
@@ -29,11 +30,6 @@ final class TopLevelBlockRecipeSupport {
     private TopLevelBlockRecipeSupport() {
     }
 
-    static TreeVisitor<?, ExecutionContext> topLevelBlockVisitor(String blockType,
-                                                                 String blockBody,
-                                                                 @Nullable String filePattern) {
-        return topLevelBlockVisitor(blockType, blockBody, null, null, null, filePattern);
-    }
 
     static TreeVisitor<?, ExecutionContext> topLevelBlockVisitor(String blockType,
                                                                  String blockBody,
@@ -55,7 +51,7 @@ final class TopLevelBlockRecipeSupport {
             new FindSourceFiles(filePattern != null ? filePattern : DEFAULT_FILE_PATTERN),
             new HclVisitor<ExecutionContext>() {
                 @Override
-                public Hcl visitConfigFile(Hcl.ConfigFile configFile, ExecutionContext ctx) {
+                public @NonNull Hcl visitConfigFile(Hcl.@org.jspecify.annotations.NonNull ConfigFile configFile, ExecutionContext ctx) {
                     Hcl.ConfigFile visited = (Hcl.ConfigFile) super.visitConfigFile(configFile, ctx);
 
                     if (hasModuleFilter && !containsMatchingModule(visited, normalizedModuleName, normalizedSource, normalizedVersion)) {
@@ -104,37 +100,9 @@ final class TopLevelBlockRecipeSupport {
                     return false;
                 }
 
-                private boolean containsMatchingModule(Hcl.ConfigFile configFile,
-                                                       @Nullable String moduleName,
-                                                       @Nullable String source,
-                                                       @Nullable String version) {
-                    for (BodyContent bodyContent : configFile.getBody()) {
-                        if (!(bodyContent instanceof Hcl.Block)) {
-                            continue;
-                        }
-
-                        Hcl.Block block = (Hcl.Block) bodyContent;
-                        if (!"module".equalsIgnoreCase(blockTypeName(block))) {
-                            continue;
-                        }
-                        if (!ModuleBlockPredicates.matchesModuleName(block, moduleName)) {
-                            continue;
-                        }
-                        if (source != null && !source.equals(ModuleBlockPredicates.getAttributeValue(block, "source"))) {
-                            continue;
-                        }
-                        if (version != null && !VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"))) {
-                            continue;
-                        }
-
-                        return true;
-                    }
-
-                    return false;
-                }
-
                 private String blockTypeName(Hcl.Block block) {
-                    return block.getType().getName().toLowerCase(Locale.ROOT);
+                    Hcl.Identifier type = block.getType();
+                    return type == null ? "" : type.getName().toLowerCase(Locale.ROOT);
                 }
 
                 private String blockSignature(Hcl.Block block) {
@@ -158,7 +126,7 @@ final class TopLevelBlockRecipeSupport {
 
                     List<String> labelSignatures = new ArrayList<>(block.getLabels().size());
                     for (Label label : block.getLabels()) {
-                        labelSignatures.add(normalizeHcl(((Tree) label).printTrimmed(getCursor())));
+                        labelSignatures.add(normalizeHcl(label.printTrimmed(getCursor())));
                     }
 
                     // Build signature: sort nested blocks and attributes for comparison
@@ -221,6 +189,7 @@ final class TopLevelBlockRecipeSupport {
 
     static Validated<Object> validateOptionalVersionConstraint(Validated<Object> validated,
                                                                @Nullable String value) {
+        validated = validateOptionalNonBlank(validated, "version", value);
         if (value != null && !value.trim().isEmpty() && !value.contains("${") && !VersionConstraintMatcher.isValidConstraint(value)) {
             return validated.and(Validated.invalid(
                 "version",
@@ -297,6 +266,40 @@ final class TopLevelBlockRecipeSupport {
             throw new IllegalStateException(VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE);
         }
         return resolved;
+    }
+
+    static boolean containsMatchingModule(Hcl.ConfigFile configFile,
+                                          @Nullable String moduleName,
+                                          @Nullable String source,
+                                          @Nullable String version) {
+        for (BodyContent bodyContent : configFile.getBody()) {
+            if (!(bodyContent instanceof Hcl.Block)) {
+                continue;
+            }
+
+            if (matchesModuleFilters((Hcl.Block) bodyContent, moduleName, source, version)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static boolean matchesModuleFilters(Hcl.Block block,
+                                        @Nullable String moduleName,
+                                        @Nullable String source,
+                                        @Nullable String version) {
+        Hcl.Identifier type = block.getType();
+        if (type == null || !"module".equalsIgnoreCase(type.getName())) {
+            return false;
+        }
+        if (!ModuleBlockPredicates.matchesModuleName(block, moduleName)) {
+            return false;
+        }
+        if (source != null && !source.equals(ModuleBlockPredicates.getAttributeValue(block, "source"))) {
+            return false;
+        }
+        return version == null || VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"));
     }
 
     static String quoteHclString(String value) {

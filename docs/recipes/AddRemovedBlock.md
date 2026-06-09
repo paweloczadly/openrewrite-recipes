@@ -16,7 +16,7 @@ Adds a top-level `removed` block to OpenTofu configuration files.
 | `Boolean` | lifecycleDestroy | Value for `lifecycle.destroy` inside the `removed` block. Defaults to `false` when not provided.                                           | `false`                                                          |
 | `String`  | moduleName       | *Optional*. Module label filter; block is added only in files that contain a matching `module` block.                                      | `"private_dns_zone"`                                             |
 | `String`  | source           | *Optional*. Module source filter; block is added only in files that contain a matching `module` block with this source.                    | `"Azure/avm-res-network-privatednszone/azurerm"`                 |
-| `String`  | version          | *Optional*. Module version filter; block is added only in files that contain a matching `module` block with this version.                  | `"~> 0.4.0"`                                                     |
+| `String`  | version          | *Optional*. Module semantic version constraint filter; block is added only in files that contain a matching `module` block.                | `"~> 0.4.0"`                                                     |
 | `String`  | filePattern      | *Optional*. A glob pattern to match files to apply this recipe to.                                                                         | `"**/production/**/*.tf"`                                        |
 
 ## Version filter semantics
@@ -46,7 +46,7 @@ Based on [Azure/terraform-azurerm-avm-res-network-privatednszone v0.4.0 migratio
 ```hcl
 module "private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "~> 0.4.0"
+  version = "0.4.0"
 }
 ```
 
@@ -55,7 +55,7 @@ module "private_dns_zone" {
 ```hcl
 module "private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "~> 0.4.0"
+  version = "0.4.0"
 }
 
 removed {

@@ -110,7 +110,7 @@ public class AddProvider extends ScanningRecipe<AddProvider.ScanState> {
     @Nullable
     String source;
 
-    @Option(displayName = "Version", description = "Optional module version filter; recipe applies only in files containing a matching module", required = false)
+    @Option(displayName = "Version", description = "Optional module semantic version constraint filter; recipe applies only in files containing a matching module", required = false)
     @Nullable
     String version;
 
@@ -161,7 +161,7 @@ public class AddProvider extends ScanningRecipe<AddProvider.ScanState> {
     @Override
     public @NonNull TreeVisitor<?, ExecutionContext> getScanner(@Nullable ScanState acc) {
         String resolvedModuleSource = TopLevelBlockRecipeSupport.resolveOptionalFilterValue(source, "source");
-        String resolvedModuleVersion = TopLevelBlockRecipeSupport.resolveOptionalFilterValue(version, "version");
+        String resolvedModuleVersion = TopLevelBlockRecipeSupport.resolveOptionalVersionFilterValue(version);
         String resolvedModuleName = TopLevelBlockRecipeSupport.resolveOptionalFilterValue(moduleName, "moduleName");
 
         return ProviderRecipeSupport.scopedVisitor("**/*.tf", new HclVisitor<ExecutionContext>() {
@@ -411,7 +411,7 @@ public class AddProvider extends ScanningRecipe<AddProvider.ScanState> {
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "providerVersion", providerVersion);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "configuration", configuration);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
-        validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
+        validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         return validated;
     }

@@ -19,11 +19,13 @@ When multiple `.tf` files exist in one module directory, the recipe first looks 
 | `String` | providerVersion | Version constraint to add. Required and cannot be blank. Supports placeholders.                                                                                     | `"~> 2.5.0"`                                     |
 | `String` | configuration   | *Optional*. Provider block body to append as `provider "name" { ... }` when such block does not already exist. Supports placeholders.                               | `"features {}"`                                  |
 | `String` | source          | *Optional*. Module source filter; recipe applies only in files containing a matching module block. Supports placeholders.                                           | `"Azure/avm-res-network-privatednszone/azurerm"` |
-| `String` | version         | *Optional*. Module version filter; recipe applies only in files containing a matching module block. Supports placeholders.                                          | `"0.3.5"`                                        |
+| `String` | version         | *Optional*. Module semantic version constraint filter; recipe applies only in files containing a matching module block. Supports placeholders.                      | `"~> 0.3.0"`                                     |
 | `String` | moduleName      | *Optional*. Module name filter; recipe applies only in files containing a matching module block. Supports placeholders.                                             | `"private_dns_zone"`                             |
 | `String` | filePattern     | *Optional*. A glob pattern to match files to apply this recipe to.                                                                                                  | `"**/terraform.tf"`                              |
 
 ## Example
+
+When `version` is specified, it is interpreted as a semantic version constraint. Matching module blocks must still declare a concrete stable version literal such as `0.3.5`.
 
 Based on migration changes where modules moving to `azapi` require explicit provider declaration.
 
@@ -74,7 +76,7 @@ recipeList:
       providerVersion: "~> 2.5.0"
       moduleName: "private_dns_zone"
       source: "Azure/avm-res-network-privatednszone/azurerm"
-      version: "0.3.5"
+      version: "~> 0.3.0"
       filePattern: "**/terraform.tf"
 ```
 

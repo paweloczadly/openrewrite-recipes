@@ -1,6 +1,5 @@
 package io.oczadly.openrewrite.hcl;
 
-import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
 import io.oczadly.openrewrite.hcl.utils.PropertyPlaceholderResolver;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -107,7 +106,7 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
     String source;
 
     @Option(displayName = "Version",
-            description = "Only apply if module version matches exactly",
+            description = "Only apply if module version matches this semantic version constraint",
             required = false)
     @Nullable
     String version;
@@ -796,7 +795,7 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
     private ResolvedOptions resolveOptionsForScanner() {
         return new ResolvedOptions(
             resolveOptional(source),
-            resolveOptional(version),
+            resolveOptionalVersion(version),
             resolveOptional(moduleName),
             localName,
             attributePath,
@@ -819,7 +818,7 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
 
         return new ResolvedOptions(
             resolveOptional(source),
-            resolveOptional(version),
+            resolveOptionalVersion(version),
             resolveOptional(moduleName),
             requireResolvedNonBlank(localName, "localName"),
             resolvedAttributePath,
@@ -844,6 +843,10 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
 
     private static String requireResolvedNonBlank(String value, String fieldName) {
         return TopLevelBlockRecipeSupport.resolveRequiredValue(value, fieldName);
+    }
+
+    private static @Nullable String resolveOptionalVersion(@Nullable String value) {
+        return TopLevelBlockRecipeSupport.resolveOptionalVersionFilterValue(value);
     }
 
     private static boolean matchesModuleFilters(Hcl.ConfigFile configFile,
@@ -873,23 +876,7 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
                                               @Nullable String source,
                                               @Nullable String version,
                                               @Nullable String name) {
-        if (name != null && !ModuleBlockPredicates.matchesModuleName(block, name)) {
-            return false;
-        }
-
-        if (source != null) {
-            String actualSource = ModuleBlockPredicates.getAttributeValue(block, "source");
-            if (!source.equals(actualSource)) {
-                return false;
-            }
-        }
-
-        if (version != null) {
-            String actualVersion = ModuleBlockPredicates.getAttributeValue(block, "version");
-            return version.equals(actualVersion);
-        }
-
-        return true;
+        return TopLevelBlockRecipeSupport.matchesModuleFilters(block, name, source, version);
     }
 
     private static String blockTypeName(Hcl.Block block) {
@@ -909,7 +896,7 @@ public class ConvertLocalValueInPath extends ScanningRecipe<ConvertLocalValueInP
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "attributePath", attributePath);
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "transformation", transformation);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
-        validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
+        validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "filePattern", filePattern);
 

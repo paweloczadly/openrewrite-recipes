@@ -16,7 +16,7 @@ Adds a top-level `moved` block to OpenTofu configuration files.
 | `String` | to          | New resource reference to move to. Required and cannot be blank. Supports placeholders like `${property}` and `${property:default}`.   | `"module.${avm.vnet.module_name}.module.subnet[\"${avm.vnet.subnet_name}\"].azapi_resource.subnet_ipam[0]"` |
 | `String` | moduleName  | *Optional*. Module label filter; block is added only in files that contain a matching `module` block.                                  | `"vnet"`                                                                                                    |
 | `String` | source      | *Optional*. Module source filter; block is added only in files that contain a matching `module` block with this source.                | `"Azure/avm-res-network-virtualnetwork/azurerm"`                                                            |
-| `String` | version     | *Optional*. Module version filter; block is added only in files that contain a matching `module` block with this version.              | `"~> 0.15.0"`                                                                                               |
+| `String` | version     | *Optional*. Module semantic version constraint filter; block is added only in files that contain a matching `module` block.            | `"~> 0.15.0"`                                                                                               |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                                                     | `"**/production/**/*.tf"`                                                                                   |
 
 ## Version filter semantics
@@ -46,7 +46,7 @@ Based on [Azure/terraform-azurerm-avm-res-network-virtualnetwork v0.15.0 migrati
 ```hcl
 module "vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "~> 0.15.0"
+  version = "0.15.0"
 }
 ```
 
@@ -55,7 +55,7 @@ module "vnet" {
 ```hcl
 module "vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "~> 0.15.0"
+  version = "0.15.0"
 }
 
 moved {

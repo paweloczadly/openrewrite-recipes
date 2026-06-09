@@ -84,7 +84,6 @@ public class AddImportBlock extends Recipe {
         Validated<Object> validated = super.validate();
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
-        validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
         validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "to", to);
         validated = TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "id", id);

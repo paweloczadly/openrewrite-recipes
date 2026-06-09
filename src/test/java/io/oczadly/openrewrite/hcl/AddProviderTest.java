@@ -191,7 +191,7 @@ class AddProviderTest implements RewriteTest {
                 "~> 2.5.0",
                 null,
                 "Azure/avm-res-network-privatednszone/azurerm",
-                "0.3.5",
+                "~> 0.3.0",
                 "private_dns_zone",
                 null
             )),
@@ -260,7 +260,7 @@ class AddProviderTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
 
                 terraform {
@@ -272,7 +272,7 @@ class AddProviderTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
 
                 terraform {
@@ -500,10 +500,10 @@ class AddProviderTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      ""    | value | 'providerName' must be specified and cannot be empty.
-        bad-name | value | 'providerName' must be a valid HCL identifier matching [A-Za-z_][A-Za-z0-9_]*.
-      value | ""    | 'providerVersion' must be specified and cannot be empty.
-        """)
+      "" | value | 'providerName' must be specified and cannot be empty.
+      bad-name | value | 'providerName' must be a valid HCL identifier matching [A-Za-z_][A-Za-z0-9_]*.
+      value | "" | 'providerVersion' must be specified and cannot be empty.
+      """)
     void shouldRejectInvalidRequiredOptions(String name, String version, String expectedMessage) {
         AddProvider recipe = new AddProvider(name, null, version, null, null, null, null, null);
 
@@ -516,10 +516,10 @@ class AddProviderTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      " " | value | value | 'source' cannot be empty when specified.
-      value | " " | value | 'version' cannot be empty when specified.
-      value | value | " " | 'moduleName' cannot be empty when specified.
-        """)
+      " " | 0.3.5 | module | 'source' cannot be empty when specified.
+      source | " " | module | 'version' cannot be empty when specified.
+      source | 0.3.5 | " " | 'moduleName' cannot be empty when specified.
+      """)
     void shouldRejectBlankOptionalFilters(String moduleSource, String moduleVersion, String moduleName, String expectedMessage) {
         AddProvider recipe = new AddProvider("azapi", "azure/azapi", "~> 2.5.0", null, moduleSource, moduleVersion, moduleName, null);
 
@@ -528,6 +528,17 @@ class AddProviderTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    void shouldRejectInvalidModuleVersionConstraint() {
+        AddProvider recipe = new AddProvider("azapi", "azure/azapi", "~> 2.5.0", null, "Azure/avm-res-network-privatednszone/azurerm", ">= 0.3.x", null, null);
+
+        Validated<Object> validated = recipe.validate();
+
+        assertThat(validated.isValid()).isFalse();
+        assertThat(validated.failures()).hasSize(1);
+        assertThat(validated.failures().getFirst().getMessage()).isEqualTo("'version' must be a valid semantic version constraint.");
     }
 }
 

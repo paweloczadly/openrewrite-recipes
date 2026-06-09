@@ -10,16 +10,18 @@ Removes entries from `terraform.required_providers` and optionally removes match
 
 ## Options
 
-| Type      | Name                | Description                                                                                                                | Example                                          |
-|-----------|---------------------|----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| `String`  | providerName        | Provider name to remove. Required and cannot be blank. Supports placeholders like `${property}` and `${property:default}`. | `"modtm"`                                        |
-| `Boolean` | removeConfiguration | *Optional*. Remove matching top-level `provider "name" {}` blocks. Defaults to `true` when omitted.                        | `false`                                          |
-| `String`  | source              | *Optional*. Module source filter; recipe applies only in files containing a matching module block. Supports placeholders.  | `"Azure/avm-res-network-privatednszone/azurerm"` |
-| `String`  | version             | *Optional*. Module version filter; recipe applies only in files containing a matching module block. Supports placeholders. | `"0.3.5"`                                        |
-| `String`  | moduleName          | *Optional*. Module name filter; recipe applies only in files containing a matching module block. Supports placeholders.    | `"private_dns_zone"`                             |
-| `String`  | filePattern         | *Optional*. A glob pattern to match files to apply this recipe to.                                                         | `"**/terraform.tf"`                              |
+| Type      | Name                | Description                                                                                                                                    | Example                                          |
+|-----------|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| `String`  | providerName        | Provider name to remove. Required and cannot be blank. Supports placeholders like `${property}` and `${property:default}`.                     | `"modtm"`                                        |
+| `Boolean` | removeConfiguration | *Optional*. Remove matching top-level `provider "name" {}` blocks. Defaults to `true` when omitted.                                            | `false`                                          |
+| `String`  | source              | *Optional*. Module source filter; recipe applies only in files containing a matching module block. Supports placeholders.                      | `"Azure/avm-res-network-privatednszone/azurerm"` |
+| `String`  | version             | *Optional*. Module semantic version constraint filter; recipe applies only in files containing a matching module block. Supports placeholders. | `"~> 0.3.0"`                                     |
+| `String`  | moduleName          | *Optional*. Module name filter; recipe applies only in files containing a matching module block. Supports placeholders.                        | `"private_dns_zone"`                             |
+| `String`  | filePattern         | *Optional*. A glob pattern to match files to apply this recipe to.                                                                             | `"**/terraform.tf"`                              |
 
 ## Example
+
+When `version` is specified, it is interpreted as a semantic version constraint. Matching module blocks must still declare a concrete stable version literal such as `0.3.5`.
 
 **Before**
 
@@ -69,7 +71,7 @@ recipeList:
       providerName: "modtm"
       moduleName: "private_dns_zone"
       source: "Azure/avm-res-network-privatednszone/azurerm"
-      version: "0.3.5"
+      version: "~> 0.3.0"
       filePattern: "**/terraform.tf"
 ```
 

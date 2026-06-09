@@ -13,8 +13,8 @@ Changes the version of a Terraform module.
 | Type     | Name        | Description                                                                                               | Example                                          |
 |----------|-------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `String` | source      | The source address of the module block to modify. Can reference local modules or remote registry modules. | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
-| `String` | version     | The version of the module block to modify.                                                                | `"~> 1.0.0"`                                     |
-| `String` | newVersion  | The new version to set for the module.                                                                    | `"~> 1.1.0"`                                     |
+| `String` | version     | Semantic version constraint for the module block to modify.                                               | `"~> 1.0.0"`                                     |
+| `String` | newVersion  | The new version to set for the module.                                                                    | `"1.1.0"`                                        |
 | `String` | moduleName  | *Optional*. The name of the module block to modify.                                                       | `"vnet_eastus2_apps"`                            |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
 

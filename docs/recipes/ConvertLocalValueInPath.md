@@ -14,21 +14,21 @@ It transforms values only inside `locals` blocks. It does not apply to module in
 
 ## Options
 
-| Type     | Name           | Description                                              | Example                                          |
-|----------|----------------|----------------------------------------------------------|--------------------------------------------------|
-| `String` | localName      | Name of the locals variable                              | `"txt_records"`                                  |
-| `String` | attributePath  | Supported values: `records.*.value`, `*.records.*.value` | `"records.*.value"`                              |
-| `String` | transformation | Transformation type: `stringToList`, `listToString`      | `"stringToList"`                                 |
-| `String` | source         | *Optional*. Exact match filter for module source         | `"Azure/avm-res-network-privatednszone/azurerm"` |
-| `String` | version        | *Optional*. Exact match filter for module version        | `"~> 0.4.0"`                                     |
-| `String` | moduleName     | *Optional*. Filter by module name                        | `"my-module"`                                    |
-| `String` | filePattern    | *Optional*. Glob pattern to match files                  | `"**/locals.tf"`                                 |
+| Type     | Name           | Description                                                       | Example                                          |
+|----------|----------------|-------------------------------------------------------------------|--------------------------------------------------|
+| `String` | localName      | Name of the locals variable                                       | `"txt_records"`                                  |
+| `String` | attributePath  | Supported values: `records.*.value`, `*.records.*.value`          | `"records.*.value"`                              |
+| `String` | transformation | Transformation type: `stringToList`, `listToString`               | `"stringToList"`                                 |
+| `String` | source         | *Optional*. Exact match filter for module source                  | `"Azure/avm-res-network-privatednszone/azurerm"` |
+| `String` | version        | *Optional*. Semantic version constraint filter for module version | `"~> 0.4.0"`                                     |
+| `String` | moduleName     | *Optional*. Filter by module name                                 | `"my-module"`                                    |
+| `String` | filePattern    | *Optional*. Glob pattern to match files                           | `"**/locals.tf"`                                 |
 
 Supported transformations and path scope:
 - `stringToList` for `records.*.value` / `*.records.*.value`
 - `listToString` for `records.*.value` / `*.records.*.value` (single string element lists only)
 
-Module filters use exact string matching after placeholder resolution.
+Module filters resolve placeholders first. `moduleName` and `source` use exact string matching, while `version` is interpreted as a semantic version constraint. Matching module blocks must still declare a concrete stable version literal such as `0.4.0`.
 
 
 ## Used by

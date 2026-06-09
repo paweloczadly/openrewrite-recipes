@@ -84,7 +84,6 @@ public class AddRemovedBlock extends Recipe {
         Validated<Object> validated = super.validate();
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
-        validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
         validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         return TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "from", from);
     }

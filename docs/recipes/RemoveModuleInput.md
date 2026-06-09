@@ -15,7 +15,7 @@ Removes a specified input variable from a Terraform module block.
 | `String` | source      | The source address of the module block to modify. Can reference local modules or remote registry modules. | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
 | `String` | inputName   | The name of the input variable to remove from the module.                                                 | `"location"`                                     |
 | `String` | moduleName  | *Optional*. The name of the module block to modify.                                                       | `"vnet_eastus2_apps"`                            |
-| `String` | version     | *Optional*. The version of the module block to modify.                                                    | `"~> 1.0.0"`                                     |
+| `String` | version     | *Optional*. Semantic version constraint for the module block to modify.                                   | `"~> 1.0.0"`                                     |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
 
 ## Version filter semantics

@@ -42,21 +42,9 @@ final class ProviderRecipeSupport {
                 continue;
             }
 
-            Hcl.Block block = (Hcl.Block) bodyContent;
-            if (!isBlockType(block, "module")) {
-                continue;
+            if (TopLevelBlockRecipeSupport.matchesModuleFilters((Hcl.Block) bodyContent, moduleName, moduleSource, moduleVersion)) {
+                return true;
             }
-            if (!ModuleBlockPredicates.matchesModuleName(block, moduleName)) {
-                continue;
-            }
-            if (moduleSource != null && !moduleSource.equals(ModuleBlockPredicates.getAttributeValue(block, "source"))) {
-                continue;
-            }
-            if (moduleVersion != null && !moduleVersion.equals(ModuleBlockPredicates.getAttributeValue(block, "version"))) {
-                continue;
-            }
-
-            return true;
         }
 
         return false;
