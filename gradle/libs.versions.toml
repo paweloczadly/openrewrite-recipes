@@ -4,7 +4,7 @@ junit = '6.1.0'
 junit-platform = '6.1.0'
 lombok = '1.18.46'
 maven-publish = '0.36.0'
-openrewrite = '2.19.0'
+openrewrite = '2.19.1'
 openrewrite-bom = '3.32.0'
 
 [plugins]
