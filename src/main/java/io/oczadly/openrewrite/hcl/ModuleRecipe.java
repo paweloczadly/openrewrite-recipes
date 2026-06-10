@@ -85,12 +85,20 @@ public abstract class ModuleRecipe extends Recipe {
             return validated;
         }
 
-        if (version != null && !version.trim().isEmpty() && !VersionConstraintMatcher.isValidConstraint(version)) {
-            validated = validated.and(Validated.invalid(
-                "version",
-                version,
-                VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE
-            ));
+        if (version != null) {
+            if (version.trim().isEmpty()) {
+                validated = validated.and(Validated.invalid(
+                    "version",
+                    version,
+                    "'version' cannot be blank or whitespace."
+                ));
+            } else if (!VersionConstraintMatcher.isValidConstraint(version)) {
+                validated = validated.and(Validated.invalid(
+                    "version",
+                    version,
+                    VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE
+                ));
+            }
         }
 
         return validated;
@@ -107,6 +115,13 @@ public abstract class ModuleRecipe extends Recipe {
             return false;
         }
 
-        return version == null || version.trim().isEmpty() || VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"));
+        if (version != null) {
+            if (version.trim().isEmpty()) {
+                return false;
+            }
+            return VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"));
+        }
+
+        return true;
     }
 }

@@ -215,8 +215,8 @@ public class ChangeModuleVersionTest implements RewriteTest {
 
     @ParameterizedTest(name = "should reject invalid version=''{0}'' newVersion=''{1}''")
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      ""   | value | 'version' must be specified and cannot be empty.
-      " "  | value | 'version' must be specified and cannot be empty.
+      ""   | value | 'version' cannot be blank or whitespace.
+      " "  | value | 'version' cannot be blank or whitespace.
       0.10.0 | ""    | 'newVersion' must be specified and cannot be empty.
       0.10.0 | " "   | 'newVersion' must be specified and cannot be empty.
       name   | value  | 'version' must be a valid semantic version constraint.
