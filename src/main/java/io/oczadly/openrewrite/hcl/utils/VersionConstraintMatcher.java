@@ -16,7 +16,7 @@ public final class VersionConstraintMatcher {
     }
 
     public static boolean matches(String recipeConstraint, @Nullable String moduleVersionValue) {
-        Version moduleVersion = Version.parseConcrete(moduleVersionValue);
+        Version moduleVersion = Version.parseModuleVersion(moduleVersionValue);
         if (moduleVersion == null) {
             return false;
         }
@@ -161,6 +161,41 @@ public final class VersionConstraintMatcher {
         private static @Nullable Version parseConcrete(@Nullable String value) {
             Version version = parseVersion(value);
             return version != null && version.specifiedSegments == 3 ? version : null;
+        }
+
+        /**
+         * Parses a module version value that may be either a concrete version (e.g., {@code 0.3.5})
+         * or a single constraint expression (e.g., {@code ~> 0.3.5}, {@code >= 0.3}). When a
+         * constraint operator prefix is present, it is stripped and the remainder is parsed as the
+         * version to match against. This lets recipe version filters match module blocks that pin
+         * their version using Terraform/OpenTofu constraint syntax.
+         */
+        private static @Nullable Version parseModuleVersion(@Nullable String value) {
+            if (value == null) {
+                return null;
+            }
+            String trimmed = value.trim();
+            // Try concrete version first (e.g. "0.3.5")
+            Version concrete = parseConcrete(trimmed);
+            if (concrete != null) {
+                return concrete;
+            }
+            // Strip a single constraint operator (e.g. "~> 0.3.5" -> "0.3.5", ">= 0.3" -> "0.3")
+            String stripped = stripConstraintOperator(trimmed);
+            if (stripped != null) {
+                return parseVersion(stripped.trim());
+            }
+            return null;
+        }
+
+        private static @Nullable String stripConstraintOperator(String value) {
+            if (value.startsWith("~>") || value.startsWith(">=") || value.startsWith("<=") || value.startsWith("!=")) {
+                return value.substring(2).trim();
+            }
+            if (value.startsWith(">") || value.startsWith("<") || value.startsWith("=")) {
+                return value.substring(1).trim();
+            }
+            return null;
         }
 
         private static @Nullable Version parseConstraintVersion(@Nullable String value) {

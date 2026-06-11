@@ -300,13 +300,39 @@ public class AddImportBlockTest implements RewriteTest {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
                   version = "0.4.0"
                 }
+
                 """
-            ),
+            )
+        );
+    }
+
+    @Test
+    void shouldAddImportBlockWhenModuleUsesConstraintVersion() {
+        rewriteRun(
+            spec -> spec.recipe(new AddImportBlock(
+                null,
+                "Azure/avm-res-network-privatednszone/azurerm",
+                ">= 0.3.0, < 0.4.0",
+                "module.private_dns_zone.azapi_resource.private_dns_zone",
+                "resource-id",
+                null
+            )),
             hcl(
                 """
                 module "private_dns_zone" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
                   version = "~> 0.3.0"
+                }
+                """,
+                """
+                module "private_dns_zone" {
+                  source  = "Azure/avm-res-network-privatednszone/azurerm"
+                  version = "~> 0.3.0"
+                }
+
+                import {
+                  to = module.private_dns_zone.azapi_resource.private_dns_zone
+                  id = "resource-id"
                 }
                 """
             )

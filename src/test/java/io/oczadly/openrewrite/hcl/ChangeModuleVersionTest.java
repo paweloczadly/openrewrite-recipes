@@ -53,17 +53,20 @@ public class ChangeModuleVersionTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest(name = "should change concrete module version when filter constraint is ''{0}''")
+    @ParameterizedTest(name = "should change module version when filter constraint is ''{0}'' and module version is ''{1}''")
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-        0.10.0              | 0.10.0 | 0.11.0
-        = 0.10.0            | 0.10.0 | 0.11.0
-        >= 0.10.0           | 0.10.7 | 0.11.0
-        > 0.10.0            | 0.10.7 | 0.11.0
-        <= 0.10.7           | 0.10.7 | 0.11.0
-        < 0.11.0            | 0.10.7 | 0.11.0
-        ~> 0.10.1           | 0.10.2 | 0.11.0
-        ~> 0.10             | 0.10.7 | 0.11.0
-        >= 0.10.0, < 0.11.0 | 0.10.7 | 0.11.0
+        0.10.0              | 0.10.0    | 0.11.0
+        = 0.10.0            | 0.10.0    | 0.11.0
+        >= 0.10.0           | 0.10.7    | 0.11.0
+        > 0.10.0            | 0.10.7    | 0.11.0
+        <= 0.10.7           | 0.10.7    | 0.11.0
+        < 0.11.0            | 0.10.7    | 0.11.0
+        ~> 0.10.1           | 0.10.2    | 0.11.0
+        ~> 0.10             | 0.10.7    | 0.11.0
+        >= 0.10.0, < 0.11.0 | 0.10.7    | 0.11.0
+        >= 0.10.0           | ~> 0.10.0 | 0.11.0
+        ~> 0.10             | ~> 0.10.0 | 0.11.0
+        ~> 0.10.0           | ~> 0.10.0 | 0.11.0
       """)
     void shouldHandleVersionConstraints(String version, String moduleVersion, String newVersion) {
         rewriteRun(
@@ -103,7 +106,7 @@ public class ChangeModuleVersionTest implements RewriteTest {
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
         0.11.0                | ~> 0.10.1
         ${var.module_version} | >= 0.10.0
-        ~> 0.10.0             | >= 0.10.0
+        ~> 0.11.0             | ~> 0.10.0
         invalid               | >= 0.10.0
         """)
     void shouldNotMatchNonConcreteOrOutOfRangeModuleVersion(String moduleVersion, String versionFilter) {

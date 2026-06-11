@@ -27,6 +27,16 @@ class VersionConstraintMatcherTest {
         >= 0.10.0               | 0.10.x | false
         >= 0.10.0               |         | false
         >= 0.10.0               | ${var.module_version} | false
+        ~> 0.3.5                | ~> 0.3.5 | true
+        ~> 0.3                  | ~> 0.3.5 | true
+        ~> 0.3.5                | ~> 0.3   | false
+        >= 0.3.0                | ~> 0.3.5 | true
+        ~> 0.4.0                | ~> 0.3.5 | false
+        = 0.3.5                 | ~> 0.3.5 | true
+        != 0.3.5                | ~> 0.3.5 | false
+        >= 0.3.5                | >= 0.3.5 | true
+        ~> 0.10.1               | = 0.10.1 | true
+        ~> 0.10.1               | <= 0.10.1 | true
         """)
     void shouldMatchSupportedConstraints(String constraint, String moduleVersion, boolean expected) {
         assertThat(VersionConstraintMatcher.matches(constraint, moduleVersion)).isEqualTo(expected);
