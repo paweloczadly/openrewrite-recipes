@@ -65,6 +65,14 @@ public class ChangeModuleVersion extends ModuleRecipe {
     public @NonNull Validated<Object> validate() {
         Validated<Object> validated = super.validate();
 
+        if (version == null) {
+            validated = validated.and(Validated.invalid(
+                "version",
+                version,
+                "'version' must be specified and cannot be empty."
+            ));
+        }
+
 
         if (newVersion.trim().isEmpty()) {
             validated = validated.and(Validated.invalid(
@@ -80,7 +88,7 @@ public class ChangeModuleVersion extends ModuleRecipe {
     private Hcl.Block changeModuleVersion(Hcl.Block block) {
         String currentVersion = block.getAttributeValue("version");
 
-        if (currentVersion == null) {
+        if (version == null || version.trim().isEmpty() || currentVersion == null) {
             return block;
         }
 

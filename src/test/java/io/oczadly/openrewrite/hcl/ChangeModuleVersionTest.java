@@ -64,7 +64,7 @@ public class ChangeModuleVersionTest implements RewriteTest {
         ~> 0.10.1           | 0.10.2 | 0.11.0
         ~> 0.10             | 0.10.7 | 0.11.0
         >= 0.10.0, < 0.11.0 | 0.10.7 | 0.11.0
-        """)
+      """)
     void shouldHandleVersionConstraints(String version, String moduleVersion, String newVersion) {
         rewriteRun(
             spec -> spec.recipe(new ChangeModuleVersion(
@@ -214,13 +214,17 @@ public class ChangeModuleVersionTest implements RewriteTest {
     }
 
     @ParameterizedTest(name = "should reject invalid version=''{0}'' newVersion=''{1}''")
-    @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      ""   | value | 'version' cannot be blank or whitespace.
-      " "  | value | 'version' cannot be blank or whitespace.
-      0.10.0 | ""    | 'newVersion' must be specified and cannot be empty.
-      0.10.0 | " "   | 'newVersion' must be specified and cannot be empty.
-      name   | value  | 'version' must be a valid semantic version constraint.
-        """)
+    @CsvSource(
+        delimiter = '|',
+        quoteCharacter = '"',
+        value = {
+            "\"\"|value|'version' cannot be blank or whitespace.",
+            "\" \"|value|'version' cannot be blank or whitespace.",
+            "0.10.0|\"\"|'newVersion' must be specified and cannot be empty.",
+            "0.10.0|\" \"|'newVersion' must be specified and cannot be empty.",
+            "name|value|'version' must be a valid semantic version constraint."
+        }
+    )
     void shouldRejectInvalidOldVersionAndNewVersion(String version, String newVersion, String expectedMessage) {
         ChangeModuleVersion recipe = new ChangeModuleVersion(
             null,
@@ -235,5 +239,22 @@ public class ChangeModuleVersionTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    void shouldRejectMissingVersion() {
+        ChangeModuleVersion recipe = new ChangeModuleVersion(
+            null,
+            "Azure/avm-res-network-virtualnetwork/azurerm",
+            null,
+            "0.11.0",
+            null
+        );
+
+        Validated<Object> validated = recipe.validate();
+
+        assertThat(validated.isValid()).isFalse();
+        assertThat(validated.failures()).hasSize(1);
+        assertThat(validated.failures().getFirst().getMessage()).isEqualTo("'version' must be specified and cannot be empty.");
     }
 }
