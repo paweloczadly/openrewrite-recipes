@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.4...v1.6.0) (2026-06-12)
+
+
+### Features
+
+* **hcl:** add semantic module version constraint matching ([#41](https://github.com/paweloczadly/openrewrite-recipes/issues/41)) ([9fab222](https://github.com/paweloczadly/openrewrite-recipes/commit/9fab222c8975698493c1ac41dc87242d7f2cf335))
+
 ## [1.5.4](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.5.3...v1.5.4) (2026-06-07)
 
 
