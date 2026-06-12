@@ -20,7 +20,7 @@ Changes the version of a Terraform module.
 
 ## Version filter semantics
 
-When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match only when their `version` attribute is a concrete stable version literal such as `0.10.2`; missing, dynamic/interpolated, invalid, or constraint-valued module versions do not match.
+When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match when their `version` attribute is either a concrete stable version literal such as `0.10.2`, or a single operator-prefixed value such as `~> 0.10.2` where the operator is stripped and the numeric portion is matched. Missing, dynamic/interpolated, invalid, and multi-clause module version values do not match.
 
 ## Used by
 

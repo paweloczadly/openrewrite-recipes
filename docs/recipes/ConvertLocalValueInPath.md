@@ -28,7 +28,7 @@ Supported transformations and path scope:
 - `stringToList` for `records.*.value` / `*.records.*.value`
 - `listToString` for `records.*.value` / `*.records.*.value` (single string element lists only)
 
-Module filters resolve placeholders first. `moduleName` and `source` use exact string matching, while `version` is interpreted as a semantic version constraint. Matching module blocks must still declare a concrete stable version literal such as `0.4.0`.
+Module filters resolve placeholders first. `moduleName` and `source` use exact string matching, while `version` is interpreted as a semantic version constraint. Matching module blocks may declare either a concrete stable version literal such as `0.4.0`, or a single operator-prefixed value such as `~> 0.4.0` where the operator is stripped and the numeric portion is matched.
 
 
 ## Used by

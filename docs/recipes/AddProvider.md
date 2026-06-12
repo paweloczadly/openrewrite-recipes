@@ -25,7 +25,7 @@ When multiple `.tf` files exist in one module directory, the recipe first looks 
 
 ## Example
 
-When `version` is specified, it is interpreted as a semantic version constraint. Matching module blocks must still declare a concrete stable version literal such as `0.3.5`.
+When `version` is specified, it is interpreted as a semantic version constraint. Matching module blocks may declare either a concrete stable version literal such as `0.3.5`, or a single operator-prefixed value such as `~> 0.3.5` where the operator is stripped and the numeric portion is matched.
 
 Based on migration changes where modules moving to `azapi` require explicit provider declaration.
 

@@ -164,11 +164,12 @@ public final class VersionConstraintMatcher {
         }
 
         /**
-         * Parses a module version value that may be either a concrete version (e.g., {@code 0.3.5})
-         * or a single constraint expression (e.g., {@code ~> 0.3.5}, {@code >= 0.3}). When a
-         * constraint operator prefix is present, it is stripped and the remainder is parsed as the
-         * version to match against. This lets recipe version filters match module blocks that pin
-         * their version using Terraform/OpenTofu constraint syntax.
+         * Parses a module version value used for matching against recipe constraints.
+         * <p>
+         * Accepted inputs are either a concrete version (e.g., {@code 0.3.5}) or a single
+         * operator-prefixed value (e.g., {@code ~> 0.3.5}, {@code >= 0.3}). For operator-prefixed
+         * values, the operator is stripped and only the numeric part is parsed as the candidate
+         * version.
          */
         private static @Nullable Version parseModuleVersion(@Nullable String value) {
             if (value == null) {
