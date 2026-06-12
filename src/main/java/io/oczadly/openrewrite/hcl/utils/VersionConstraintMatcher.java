@@ -166,10 +166,11 @@ public final class VersionConstraintMatcher {
         /**
          * Parses a module version value used for matching against recipe constraints.
          * <p>
-         * Accepted inputs are either a concrete version (e.g., {@code 0.3.5}) or a single
-         * operator-prefixed value (e.g., {@code ~> 0.3.5}, {@code >= 0.3}). For operator-prefixed
-         * values, the operator is stripped and only the numeric part is parsed as the candidate
-         * version.
+         * Accepted inputs are either a concrete version (e.g., {@code 0.3.5}) or selected
+         * single operator-prefixed values (for example {@code ~> 0.3.5}, {@code >= 0.3},
+         * {@code = 0.3.5}). For those supported prefixes, the operator is stripped and only the
+         * numeric part is parsed as the candidate version. Unsupported operators such as
+         * {@code !=} are treated as non-matching.
          */
         private static @Nullable Version parseModuleVersion(@Nullable String value) {
             if (value == null) {
@@ -190,7 +191,7 @@ public final class VersionConstraintMatcher {
         }
 
         private static @Nullable String stripConstraintOperator(String value) {
-            if (value.startsWith("~>") || value.startsWith(">=") || value.startsWith("<=") || value.startsWith("!=")) {
+            if (value.startsWith("~>") || value.startsWith(">=") || value.startsWith("<=")) {
                 return value.substring(2).trim();
             }
             if (value.startsWith(">") || value.startsWith("<") || value.startsWith("=")) {
