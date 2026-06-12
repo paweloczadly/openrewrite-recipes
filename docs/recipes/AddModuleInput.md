@@ -17,8 +17,12 @@ Adds a new input argument to OpenTofu module blocks.
 | `String` | inputValue         | The value of the input variable to be added. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty.                                                                                                   | `"eastus2"`                                      |
 | `String` | inputValueProperty | System property name containing the value to assign to the input variable. Supports placeholders like `${property}` and `${property:default}`. Either 'inputValue' or 'inputValueProperty' must be specified and cannot be empty. | `"${avm.vnet.location:default-location}"`        |
 | `String` | moduleName         | *Optional*. The name of the module block to modify.                                                                                                                                                                               | `"vnet_eastus2_apps"`                            |
-| `String` | version            | *Optional*. The version of the module block to modify.                                                                                                                                                                            | `"~> 1.0.0"`                                     |
+| `String` | version            | *Optional*. Semantic version constraint for the module block to modify.                                                                                                                                                           | `"~> 1.0.0"`                                     |
 | `String` | filePattern        | *Optional*. A glob pattern to match files to apply this recipe to.                                                                                                                                                                | `"**/production/**/*.tf"`                        |
+
+## Version filter semantics
+
+When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match when their `version` attribute is either a concrete stable version literal such as `0.10.2`, or a single operator-prefixed value such as `~> 0.10.2` where the operator is stripped and the numeric portion is matched. Missing, dynamic/interpolated, invalid, and multi-clause module version values do not match.
 
 ## Used by
 

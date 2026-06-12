@@ -1,6 +1,7 @@
 package io.oczadly.openrewrite.hcl;
 
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
+import io.oczadly.openrewrite.hcl.utils.VersionConstraintMatcher;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
@@ -49,7 +50,7 @@ public abstract class ModuleRecipe extends Recipe {
     final String source;
 
     @Nullable
-    @Option(displayName = "Version", description = "The version of the module block to modify", required = false)
+    @Option(displayName = "Version", description = "Semantic version constraint for the module block to modify", required = false)
     final String version;
 
     @Nullable
@@ -84,6 +85,22 @@ public abstract class ModuleRecipe extends Recipe {
             return validated;
         }
 
+        if (version != null) {
+            if (version.trim().isEmpty()) {
+                validated = validated.and(Validated.invalid(
+                    "version",
+                    version,
+                    "'version' cannot be blank or whitespace."
+                ));
+            } else if (!VersionConstraintMatcher.isValidConstraint(version)) {
+                validated = validated.and(Validated.invalid(
+                    "version",
+                    version,
+                    VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE
+                ));
+            }
+        }
+
         return validated;
     }
 
@@ -98,6 +115,13 @@ public abstract class ModuleRecipe extends Recipe {
             return false;
         }
 
-        return version == null || version.equals(ModuleBlockPredicates.getAttributeValue(block, "version"));
+        if (version != null) {
+            if (version.trim().isEmpty()) {
+                return false;
+            }
+            return VersionConstraintMatcher.matches(version, ModuleBlockPredicates.getAttributeValue(block, "version"));
+        }
+
+        return true;
     }
 }

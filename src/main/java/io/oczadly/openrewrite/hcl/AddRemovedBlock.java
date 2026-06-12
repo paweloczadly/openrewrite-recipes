@@ -25,7 +25,7 @@ public class AddRemovedBlock extends Recipe {
     @Nullable
     String source;
 
-    @Option(displayName = "Version", description = "Optional module version filter; recipe applies only in files containing a matching module", required = false)
+    @Option(displayName = "Version", description = "Optional module semantic version constraint filter; recipe applies only in files containing a matching module", required = false)
     @Nullable
     String version;
 
@@ -84,7 +84,7 @@ public class AddRemovedBlock extends Recipe {
         Validated<Object> validated = super.validate();
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "moduleName", moduleName);
         validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "source", source);
-        validated = TopLevelBlockRecipeSupport.validateOptionalNonBlank(validated, "version", version);
+        validated = TopLevelBlockRecipeSupport.validateOptionalVersionConstraint(validated, version);
         return TopLevelBlockRecipeSupport.validateRequiredNonBlank(validated, "from", from);
     }
 

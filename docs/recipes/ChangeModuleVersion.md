@@ -13,10 +13,14 @@ Changes the version of a Terraform module.
 | Type     | Name        | Description                                                                                               | Example                                          |
 |----------|-------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `String` | source      | The source address of the module block to modify. Can reference local modules or remote registry modules. | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
-| `String` | version     | The version of the module block to modify.                                                                | `"~> 1.0.0"`                                     |
-| `String` | newVersion  | The new version to set for the module.                                                                    | `"~> 1.1.0"`                                     |
+| `String` | version     | Semantic version constraint for the module block to modify.                                               | `"~> 1.0.0"`                                     |
+| `String` | newVersion  | The new version to set for the module.                                                                    | `"1.1.0"`                                        |
 | `String` | moduleName  | *Optional*. The name of the module block to modify.                                                       | `"vnet_eastus2_apps"`                            |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
+
+## Version filter semantics
+
+When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match when their `version` attribute is either a concrete stable version literal such as `0.10.2`, or a single operator-prefixed value such as `~> 0.10.2` where the operator is stripped and the numeric portion is matched. Missing, dynamic/interpolated, invalid, and multi-clause module version values do not match.
 
 ## Used by
 
@@ -32,14 +36,14 @@ The following example demonstrates changing the version for `avm-res-network-vir
 |------------|--------------------------------------------------|
 | source     | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
 | version    | `"~> 0.10.0"`                                    |
-| newVersion | `"~> 0.11.0"`                                    |
+| newVersion | `"0.11.0"`                                      |
 
 **Before**
 
 ```hcl
 module "vnet_eastus2_apps" {
     source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-    version = "~> 0.10.0"
+    version = "0.10.2"
 }
 ```
 
@@ -48,7 +52,7 @@ module "vnet_eastus2_apps" {
 ```hcl
 module "vnet_eastus2_apps" {
     source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-    version = "~> 0.11.0"
+    version = "0.11.0"
 }
 ```
 
@@ -66,7 +70,7 @@ recipeList:
   - io.oczadly.openrewrite.hcl.ChangeModuleVersion:
       source: "Azure/avm-res-network-virtualnetwork/azurerm"
       version: "~> 0.10.0"
-      newVersion: "~> 0.11.0"
+      newVersion: "0.11.0"
 ```
 
 Now that `io.oczadly.avm.migrations.ChangeVnetVersionFrom010xTo011x` has been defined, activate it in your build file:

@@ -15,8 +15,12 @@ Removes a specified input variable from a Terraform module block.
 | `String` | source      | The source address of the module block to modify. Can reference local modules or remote registry modules. | `"Azure/avm-res-network-virtualnetwork/azurerm"` |
 | `String` | inputName   | The name of the input variable to remove from the module.                                                 | `"location"`                                     |
 | `String` | moduleName  | *Optional*. The name of the module block to modify.                                                       | `"vnet_eastus2_apps"`                            |
-| `String` | version     | *Optional*. The version of the module block to modify.                                                    | `"~> 1.0.0"`                                     |
+| `String` | version     | *Optional*. Semantic version constraint for the module block to modify.                                   | `"~> 1.0.0"`                                     |
 | `String` | filePattern | *Optional*. A glob pattern to match files to apply this recipe to.                                        | `"**/production/**/*.tf""`                       |
+
+## Version filter semantics
+
+When `version` is specified, it is interpreted as a semantic version constraint. The MVP matcher supports `=`, `!=`, `>`, `>=`, `<`, `<=`, `~>`, and comma-separated AND constraints such as `>= 0.10.0, < 0.11.0`. Module blocks match when their `version` attribute is either a concrete stable version literal such as `0.10.2`, or a single operator-prefixed value such as `~> 0.10.2` where the operator is stripped and the numeric portion is matched. Missing, dynamic/interpolated, invalid, and multi-clause module version values do not match.
 
 ## Used by
 

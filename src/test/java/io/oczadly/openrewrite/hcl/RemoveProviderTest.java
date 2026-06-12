@@ -178,7 +178,7 @@ class RemoveProviderTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.3.5"
+                  version = "0.3.5"
                 }
                 """,
                 spec -> spec.path("main.tf")
@@ -211,7 +211,7 @@ class RemoveProviderTest implements RewriteTest {
                 "modtm",
                 true,
                 "Azure/avm-res-network-privatednszone/azurerm",
-                "0.3.5",
+                "~> 0.3.0",
                 "private_dns_zone",
                 null
             )),
@@ -369,9 +369,9 @@ class RemoveProviderTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      ""  | 'providerName' must be specified and cannot be empty.
+      "" | 'providerName' must be specified and cannot be empty.
       " " | 'providerName' must be specified and cannot be empty.
-        """)
+      """)
     void shouldRejectInvalidName(String name, String expectedMessage) {
         RemoveProvider recipe = new RemoveProvider(name, null, null, null, null, null);
 
@@ -384,10 +384,10 @@ class RemoveProviderTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      " " | value | value | 'source' cannot be empty when specified.
-      value | " " | value | 'version' cannot be empty when specified.
-      value | value | " " | 'moduleName' cannot be empty when specified.
-        """)
+      " " | 0.3.5 | module | 'source' cannot be empty when specified.
+      source | " " | module | 'version' cannot be empty when specified.
+      source | 0.3.5 | " " | 'moduleName' cannot be empty when specified.
+      """)
     void shouldRejectBlankOptionalFilters(String moduleSource, String moduleVersion, String moduleName, String expectedMessage) {
         RemoveProvider recipe = new RemoveProvider("modtm", null, moduleSource, moduleVersion, moduleName, null);
 
@@ -396,6 +396,17 @@ class RemoveProviderTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    void shouldRejectInvalidModuleVersionConstraint() {
+        RemoveProvider recipe = new RemoveProvider("modtm", null, "Azure/avm-res-network-privatednszone/azurerm", ">= 0.3.x", null, null);
+
+        Validated<Object> validated = recipe.validate();
+
+        assertThat(validated.isValid()).isFalse();
+        assertThat(validated.failures()).hasSize(1);
+        assertThat(validated.failures().getFirst().getMessage()).isEqualTo("'version' must be a valid semantic version constraint.");
     }
 }
 

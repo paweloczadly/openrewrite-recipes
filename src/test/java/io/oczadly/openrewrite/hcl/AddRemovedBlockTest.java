@@ -459,8 +459,8 @@ public class AddRemovedBlockTest implements RewriteTest {
 
     @ParameterizedTest(name = "should reject blank module filters moduleName=''{0}'' source=''{1}'' version=''{2}''")
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      " " | value | value | 'moduleName' cannot be empty when specified.
-      value | " " | value | 'source' cannot be empty when specified.
+      " " | value | 1.0.0 | 'moduleName' cannot be empty when specified.
+      value | " " | 1.0.0 | 'source' cannot be empty when specified.
       value | value | " " | 'version' cannot be empty when specified.
         """)
     void shouldRejectBlankOptionalModuleFilters(String moduleName, String source, String version, String expectedMessage) {

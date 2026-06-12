@@ -1,6 +1,7 @@
 package io.oczadly.openrewrite.hcl;
 
 import io.oczadly.openrewrite.hcl.utils.ModuleBlockPredicates;
+import io.oczadly.openrewrite.hcl.utils.VersionConstraintMatcher;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.NonNull;
@@ -64,13 +65,14 @@ public class ChangeModuleVersion extends ModuleRecipe {
     public @NonNull Validated<Object> validate() {
         Validated<Object> validated = super.validate();
 
-        if (version == null || version.trim().isEmpty()) {
+        if (version == null) {
             validated = validated.and(Validated.invalid(
                 "version",
                 version,
                 "'version' must be specified and cannot be empty."
             ));
         }
+
 
         if (newVersion.trim().isEmpty()) {
             validated = validated.and(Validated.invalid(
@@ -86,14 +88,14 @@ public class ChangeModuleVersion extends ModuleRecipe {
     private Hcl.Block changeModuleVersion(Hcl.Block block) {
         String currentVersion = block.getAttributeValue("version");
 
-        if (currentVersion == null) {
+        if (version == null || version.trim().isEmpty() || currentVersion == null) {
             return block;
         }
 
         // Remove quotes if present
         currentVersion = ModuleBlockPredicates.removeQuotes(currentVersion);
 
-        if (!version.equals(currentVersion)) {
+        if (!VersionConstraintMatcher.matches(version, currentVersion)) {
             return block;
         }
 

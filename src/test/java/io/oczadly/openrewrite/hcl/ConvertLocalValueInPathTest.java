@@ -264,10 +264,10 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      ""          | records.*.value | stringToList | 'localName' must be specified and cannot be empty.
-      txt_records | ""              | stringToList | 'attributePath' must be specified and cannot be empty.
-      txt_records | records.*.value | ""           | 'transformation' must be specified and cannot be empty.
-        """)
+      "" | records.*.value | stringToList | 'localName' must be specified and cannot be empty.
+      txt_records | "" | stringToList | 'attributePath' must be specified and cannot be empty.
+      txt_records | records.*.value | "" | 'transformation' must be specified and cannot be empty.
+      """)
     void shouldFailValidationWhenRequiredFieldsMissing(String localName,
                                                        String attributePath,
                                                        String transformation,
@@ -311,11 +311,11 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
 
     @ParameterizedTest
     @CsvSource(delimiter = '|', quoteCharacter = '"', textBlock = """
-      " " | value | value | value | 'source' cannot be empty when specified.
-      value | " " | value | value | 'version' cannot be empty when specified.
-      value | value | " " | value | 'moduleName' cannot be empty when specified.
-      value | value | value | " " | 'filePattern' cannot be empty when specified.
-        """)
+      " " | 0.4.0 | module | **/*.tf | 'source' cannot be empty when specified.
+      source | " " | module | **/*.tf | 'version' cannot be empty when specified.
+      source | 0.4.0 | " " | **/*.tf | 'moduleName' cannot be empty when specified.
+      source | 0.4.0 | module | " " | 'filePattern' cannot be empty when specified.
+      """)
     void shouldRejectBlankOptionalFilters(String source,
                                           String version,
                                           String moduleName,
@@ -336,6 +336,25 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
         assertThat(validated.isValid()).isFalse();
         assertThat(validated.failures()).hasSize(1);
         assertThat(validated.failures().getFirst().getMessage()).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    void shouldRejectInvalidModuleVersionConstraint() {
+        ConvertLocalValueInPath recipe = new ConvertLocalValueInPath(
+            "private_dns_zones",
+            "Azure/avm-res-network-privatednszone/azurerm",
+            ">= 0.4.x",
+            "txt_records",
+            "records.*.value",
+            "stringToList",
+            null
+        );
+
+        Validated<Object> validated = recipe.validate();
+
+        assertThat(validated.isValid()).isFalse();
+        assertThat(validated.failures()).hasSize(1);
+        assertThat(validated.failures().getFirst().getMessage()).isEqualTo("'version' must be a valid semantic version constraint.");
     }
 
     @Test
@@ -1037,7 +1056,7 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
                 """,
                 spec -> spec.path("env/prod/main.tf")
@@ -1090,7 +1109,7 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
                 """,
                 spec -> spec.path("env/prod/main.tf")
@@ -1130,7 +1149,7 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
                 """,
                 spec -> spec.path("env/prod/main.tf")
@@ -1183,7 +1202,7 @@ public class ConvertLocalValueInPathTest implements RewriteTest {
                 """
                 module "private_dns_zones" {
                   source  = "Azure/avm-res-network-privatednszone/azurerm"
-                  version = "~> 0.4.0"
+                  version = "0.4.0"
                 }
                 """,
                 spec -> spec.path("env/prod/main.tf")
