@@ -51,7 +51,7 @@ final class TopLevelBlockRecipeSupport {
             new FindSourceFiles(filePattern != null ? filePattern : DEFAULT_FILE_PATTERN),
             new HclVisitor<ExecutionContext>() {
                 @Override
-                public @NonNull Hcl visitConfigFile(Hcl.@org.jspecify.annotations.NonNull ConfigFile configFile, ExecutionContext ctx) {
+                public @NonNull Hcl visitConfigFile(Hcl.@NonNull ConfigFile configFile, ExecutionContext ctx) {
                     Hcl.ConfigFile visited = (Hcl.ConfigFile) super.visitConfigFile(configFile, ctx);
 
                     if (hasModuleFilter && !containsMatchingModule(visited, normalizedModuleName, normalizedSource, normalizedVersion)) {
