@@ -1,11 +1,11 @@
 [versions]
 assertj = '3.27.7'
-junit = '6.1.1'
-junit-platform = '6.1.1'
+junit = '6.1.2'
+junit-platform = '6.1.2'
 lombok = '1.18.46'
 maven-publish = '0.37.0'
 openrewrite = '2.19.9'
-openrewrite-bom = '3.34.0'
+openrewrite-bom = '3.35.0'
 
 [plugins]
 openrewrite-recipe-library-base = { id = 'org.openrewrite.build.recipe-library-base', version.ref = 'openrewrite' }
