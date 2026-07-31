@@ -5,7 +5,7 @@ junit-platform = '6.1.2'
 lombok = '1.18.46'
 maven-publish = '0.37.0'
 openrewrite = '2.21.0'
-openrewrite-bom = '3.35.0'
+openrewrite-bom = '3.36.0'
 
 [plugins]
 openrewrite-recipe-library-base = { id = 'org.openrewrite.build.recipe-library-base', version.ref = 'openrewrite' }
