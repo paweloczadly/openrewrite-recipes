@@ -51,6 +51,7 @@ These recipes enable automated modifications to [OpenTofu](https://opentofu.org/
 | [Convert local value in path](docs/recipes/ConvertLocalValueInPath.md)         | Transforms attribute values in nested map structures using path expressions.             |
 | [Remove module input](docs/recipes/RemoveModuleInput.md)                       | Removes a specified input variable from a Terraform module block.                        |
 | [Add provider](docs/recipes/AddProvider.md)                                    | Adds/creates `terraform.required_providers` entries and optional provider config blocks. |
+| [Change provider version](docs/recipes/ChangeProviderVersion.md)               | Changes the version constraint of a `terraform.required_providers` entry.                |
 | [Remove provider](docs/recipes/RemoveProvider.md)                              | Removes `terraform.required_providers` entries and optional provider config blocks.      |
 
 ---

@@ -10,9 +10,13 @@ import java.util.List;
  */
 public final class VersionConstraintMatcher {
 
-    public static final String INVALID_CONSTRAINT_MESSAGE = "'version' must be a valid semantic version constraint.";
+    public static final String INVALID_CONSTRAINT_MESSAGE = invalidConstraintMessage("version");
 
     private VersionConstraintMatcher() {
+    }
+
+    public static String invalidConstraintMessage(String fieldName) {
+        return "'" + fieldName + "' must be a valid semantic version constraint.";
     }
 
     public static boolean matches(String recipeConstraint, @Nullable String moduleVersionValue) {

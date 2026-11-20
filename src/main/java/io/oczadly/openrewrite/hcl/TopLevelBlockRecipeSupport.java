@@ -189,12 +189,18 @@ final class TopLevelBlockRecipeSupport {
 
     static Validated<Object> validateOptionalVersionConstraint(Validated<Object> validated,
                                                                @Nullable String value) {
-        validated = validateOptionalNonBlank(validated, "version", value);
+        return validateOptionalVersionConstraint(validated, "version", value);
+    }
+
+    static Validated<Object> validateOptionalVersionConstraint(Validated<Object> validated,
+                                                               String fieldName,
+                                                               @Nullable String value) {
+        validated = validateOptionalNonBlank(validated, fieldName, value);
         if (value != null && !value.trim().isEmpty() && !value.contains("${") && !VersionConstraintMatcher.isValidConstraint(value)) {
             return validated.and(Validated.invalid(
-                "version",
+                fieldName,
                 value,
-                VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE
+                VersionConstraintMatcher.invalidConstraintMessage(fieldName)
             ));
         }
         return validated;
@@ -212,6 +218,26 @@ final class TopLevelBlockRecipeSupport {
                 fieldName,
                 value,
                 "'" + fieldName + "' must be a valid HCL identifier matching [A-Za-z_][A-Za-z0-9_]*."
+            ));
+        }
+        return validated;
+    }
+
+    /**
+     * A provider local name, the key in {@code required_providers}, may contain hyphens, such as {@code google-beta}.
+     */
+    static Validated<Object> validateProviderLocalName(Validated<Object> validated,
+                                                       String fieldName,
+                                                       @Nullable String value) {
+        String normalizedValue = normalizeNullable(value);
+        if (normalizedValue == null || normalizedValue.contains("${")) {
+            return validated;
+        }
+        if (!normalizedValue.matches("[A-Za-z_][A-Za-z0-9_-]*")) {
+            return validated.and(Validated.invalid(
+                fieldName,
+                value,
+                "'" + fieldName + "' must be a valid provider local name matching [A-Za-z_][A-Za-z0-9_-]*."
             ));
         }
         return validated;
@@ -261,9 +287,13 @@ final class TopLevelBlockRecipeSupport {
     }
 
     static @Nullable String resolveOptionalVersionFilterValue(@Nullable String value) {
-        String resolved = resolveOptionalFilterValue(value, "version");
+        return resolveOptionalVersionFilterValue(value, "version");
+    }
+
+    static @Nullable String resolveOptionalVersionFilterValue(@Nullable String value, String fieldName) {
+        String resolved = resolveOptionalFilterValue(value, fieldName);
         if (resolved != null && !VersionConstraintMatcher.isValidConstraint(resolved)) {
-            throw new IllegalStateException(VersionConstraintMatcher.INVALID_CONSTRAINT_MESSAGE);
+            throw new IllegalStateException(VersionConstraintMatcher.invalidConstraintMessage(fieldName));
         }
         return resolved;
     }
