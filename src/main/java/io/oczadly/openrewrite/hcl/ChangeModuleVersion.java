@@ -11,8 +11,6 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Validated;
 import org.openrewrite.hcl.HclVisitor;
-import org.openrewrite.hcl.format.SpacesVisitor;
-import org.openrewrite.hcl.style.SpacesStyle;
 import org.openrewrite.hcl.tree.Hcl;
 
 @Value
@@ -51,9 +49,7 @@ public class ChangeModuleVersion extends ModuleRecipe {
                 block = (Hcl.Block) super.visitBlock(block, ctx);
 
                 if (matchesModule(block)) {
-                    Hcl.Block modified = changeModuleVersion(block);
-                    doAfterVisit(new SpacesVisitor<>(SpacesStyle.DEFAULT, modified));
-                    return modified;
+                    return changeModuleVersion(block);
                 }
 
                 return block;

@@ -15,7 +15,7 @@
 - Matching semantics for module-block recipes are strict: `source` is required and compared exactly, `moduleName` and `version` are optional filters.
 - `ModuleBlockPredicates.getAttributeValue()` strips quotes before comparisons, so module-block recipe matching should use unquoted values.
 - `AddImportBlock`, `AddMovedBlock`, and `AddRemovedBlock` build typed block bodies and delegate insertion/idempotency behavior to `TopLevelBlockRecipeSupport`.
-- After mutations, recipes schedule `SpacesVisitor` to normalize HCL formatting (applies to module-block recipes and top-level recipes).
+- Recipes that add or remove attributes or blocks schedule `SpacesVisitor` to normalize HCL formatting. A recipe that only replaces a value (`ChangeModuleVersion`) does not: `SpacesVisitor` formats the file from its start, not just the changed block.
 
 ## Local workflows that mirror CI/CD
 - CI (`.github/workflows/ci.yml`) runs commitlint plus `./gradlew build` on Java 17.

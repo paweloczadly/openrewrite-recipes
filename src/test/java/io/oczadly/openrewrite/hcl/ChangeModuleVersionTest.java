@@ -180,6 +180,71 @@ public class ChangeModuleVersionTest implements RewriteTest {
     }
 
     @Test
+    void shouldNotReformatCodeOutsideTheVersionAttribute() {
+        rewriteRun(
+            hcl(
+                """
+                locals {
+                  settings = {
+                    enabled = true
+                    # A comment between attributes ends terraform fmt's alignment group.
+                    retention_in_days = 30
+                  }
+                }
+
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.10.0"
+                }
+                """,
+                """
+                locals {
+                  settings = {
+                    enabled = true
+                    # A comment between attributes ends terraform fmt's alignment group.
+                    retention_in_days = 30
+                  }
+                }
+
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.11.0"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
+    void shouldNotChangeModuleAlreadyAtNewVersion() {
+        rewriteRun(
+            spec -> spec.recipe(new ChangeModuleVersion(
+                null,
+                "Azure/avm-res-network-virtualnetwork/azurerm",
+                ">= 0.10.0",
+                "0.11.0",
+                null
+            )),
+            hcl(
+                """
+                locals {
+                  settings = {
+                    enabled = true
+                    # A comment between attributes ends terraform fmt's alignment group.
+                    retention_in_days = 30
+                  }
+                }
+
+                module "avm-res-network-virtualnetwork" {
+                  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+                  version = "0.11.0"
+                }
+                """
+            )
+        );
+    }
+
+    @Test
     void shouldOnlyModifyFilesMatchingPattern() {
         rewriteRun(
             spec -> spec.recipe(new ChangeModuleVersion(
