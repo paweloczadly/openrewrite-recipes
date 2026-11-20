@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.6.6...v1.7.0) (2026-11-20)
+
+
+### Features
+
+* **hcl:** add ChangeProviderVersion recipe ([#71](https://github.com/paweloczadly/openrewrite-recipes/issues/71)) ([8311b73](https://github.com/paweloczadly/openrewrite-recipes/commit/8311b73c76b7ac4c3a61b5460adadc7aa03c01cd))
+
 ## [1.6.6](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.6.5...v1.6.6) (2026-08-12)
 
 
