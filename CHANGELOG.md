@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.7.0...v1.7.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **hcl:** stop ChangeModuleVersion reformatting the rest of the file ([#73](https://github.com/paweloczadly/openrewrite-recipes/issues/73)) ([436ce40](https://github.com/paweloczadly/openrewrite-recipes/commit/436ce4014d0fe43b6ff01e2b2a9bd1b63f21453f))
+
 # [1.7.0](https://github.com/paweloczadly/openrewrite-recipes/compare/v1.6.6...v1.7.0) (2026-11-20)
 
 

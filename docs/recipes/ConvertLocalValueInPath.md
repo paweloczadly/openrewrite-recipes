@@ -157,7 +157,7 @@ repositories {
 }
 
 dependencies {
-    rewrite("io.oczadly:openrewrite-recipes:1.7.0")
+    rewrite("io.oczadly:openrewrite-recipes:1.7.1")
 }
 
 rewrite {
